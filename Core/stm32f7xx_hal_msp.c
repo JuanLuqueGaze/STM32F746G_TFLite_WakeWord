@@ -85,6 +85,8 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef *huart)
   /*##-1- Reset peripherals ##################################################*/
 //  USARTx_FORCE_RESET();
 //  USARTx_RELEASE_RESET();
+  DISCOVERY_COM1_FORCE_RESET();
+  DISCOVERY_COM1_RELEASE_RESET();  
 
   /*##-2- Disable peripherals and GPIO Clocks #################################*/
   /* Configure USART6 Tx as alternate function  */
