@@ -73,7 +73,7 @@ ETH_TxPacketConfig TxConfig;
 static void system_clock_config(void);
 static void cpu_cache_enable(void);
 static void error_handler(void);
-static void MX_USART1_UART_Init(void);
+static void uart1_init(void);
 
 /* USER CODE BEGIN PFP */
 
@@ -117,7 +117,7 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
-  MX_USART1_UART_Init();
+  uart1_init();
 
   while (1)
   {
@@ -175,34 +175,36 @@ int main(void)
 }
 
 
-static void MX_USART1_UART_Init(void)
+static void uart1_init(void)
 {
 
-  /* USER CODE BEGIN QUADSPI_Init 0 */
-
-  /* USER CODE END QUADSPI_Init 0 */
-
-  /* USER CODE BEGIN QUADSPI_Init 1 */
-
-  /* USER CODE END QUADSPI_Init 1 */
-  /* QUADSPI parameter configuration*/
-  huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
-  huart1.Init.WordLength = UART_WORDLENGTH_8B;
-  huart1.Init.StopBits = UART_STOPBITS_1;
-  huart1.Init.Parity = UART_PARITY_NONE;
-  huart1.Init.Mode = UART_MODE_TX_RX;
-  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-  huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if (HAL_UART_Init(&huart1) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN QUADSPI_Init 2 */
-
-  /* USER CODE END QUADSPI_Init 2 */
+    /*##-1- Configure the UART peripheral ######################################*/
+  	/* Put the USART peripheral in the Asynchronous mode (UART Mode)
+  	   UART configured as follows:
+  	      - Word Length = 8 Bits
+  	      - Stop Bit = One Stop bit
+  	      - Parity = None
+  	      - BaudRate = 9600 baud
+  	      - Hardware flow control disabled (RTS and CTS signals)
+  	 */
+  
+     DebugUartHandler.Instance        = DISCOVERY_COM1;
+     DebugUartHandler.Init.BaudRate   = 9600;
+     DebugUartHandler.Init.WordLength = UART_WORDLENGTH_8B;
+     DebugUartHandler.Init.StopBits   = UART_STOPBITS_1;
+     DebugUartHandler.Init.Parity     = UART_PARITY_NONE;
+     DebugUartHandler.Init.HwFlowCtl  = UART_HWCONTROL_NONE;
+     DebugUartHandler.Init.Mode       = UART_MODE_TX_RX;
+     DebugUartHandler.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+   
+     if(HAL_UART_DeInit(&DebugUartHandler) != HAL_OK)
+     {
+       error_handler();
+     }
+     if(HAL_UART_Init(&DebugUartHandler) != HAL_OK)
+     {
+         error_handler();
+     }
 
 }
 
