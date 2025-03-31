@@ -146,7 +146,7 @@ int main(void)
   BSP_LED_Init(LED_GREEN);
 
   /* Configure the peripherals common clocks */
-  PeriphCommonClock_Config();
+  PeriphCommonClock_Config();  //Maybe I should remove this line
 
   /* USER CODE BEGIN SysInit */
 
