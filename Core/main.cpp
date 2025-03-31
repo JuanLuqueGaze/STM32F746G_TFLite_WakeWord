@@ -20,9 +20,9 @@
 #include "main.h"
 #include "string.h"
 #include "cmsis_os.h"
-#include "fatfs.h"
+//#include "fatfs.h"
 #include "lcd.h"
-#include "usb_host.h"
+//#include "usb_host.h"
 #include "stm32746g_discovery.h"
 //Includes for the tensorflow code
 #include "audio_provider.h"
