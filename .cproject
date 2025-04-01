@@ -50,6 +50,7 @@
 									<listOptionValue builtIn="false" value="STM32F746xx"/>
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.includepaths.464846678" name="Include paths (-I)" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.includepaths" useByScannerDiscovery="false" valueType="includePath">
+									<listOptionValue builtIn="false" value="../third_party/kissfft"/>
 									<listOptionValue builtIn="false" value="../Core"/>
 									<listOptionValue builtIn="false" value="../tensorflow"/>
 									<listOptionValue builtIn="false" value="../Drivers/BSP/Components"/>
@@ -92,6 +93,7 @@
 									<listOptionValue builtIn="false" value="../third_party/flatbuffers/include"/>
 									<listOptionValue builtIn="false" value="../third_party/gemmlowp"/>
 									<listOptionValue builtIn="false" value="../third_party/ruy"/>
+									<listOptionValue builtIn="false" value="../third_party/kissfft"/>
 									<listOptionValue builtIn="false" value="../FATFS/Target"/>
 									<listOptionValue builtIn="false" value="../FATFS/App"/>
 									<listOptionValue builtIn="false" value="../USB_HOST/App"/>
@@ -185,6 +187,7 @@
 									<listOptionValue builtIn="false" value="../third_party/flatbuffers/include"/>
 									<listOptionValue builtIn="false" value="../third_party/gemmlowp"/>
 									<listOptionValue builtIn="false" value="../third_party/ruy"/>
+									<listOptionValue builtIn="false" value="../third_party/kissfft"/>
 									<listOptionValue builtIn="false" value="../FATFS/Target"/>
 									<listOptionValue builtIn="false" value="../FATFS/App"/>
 									<listOptionValue builtIn="false" value="../USB_HOST/App"/>
@@ -218,6 +221,7 @@
 									<listOptionValue builtIn="false" value="../third_party/flatbuffers/include"/>
 									<listOptionValue builtIn="false" value="../third_party/gemmlowp"/>
 									<listOptionValue builtIn="false" value="../third_party/ruy"/>
+									<listOptionValue builtIn="false" value="../third_party/kissfft"/>
 									<listOptionValue builtIn="false" value="../FATFS/Target"/>
 									<listOptionValue builtIn="false" value="../FATFS/App"/>
 									<listOptionValue builtIn="false" value="../USB_HOST/App"/>

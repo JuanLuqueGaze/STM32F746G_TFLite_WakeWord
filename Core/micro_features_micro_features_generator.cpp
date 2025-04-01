@@ -19,8 +19,8 @@ limitations under the License.
 #include <cstring>
 
 #include "micro_features_micro_model_settings.h"
-#include "tensorflow/lite/experimental/microfrontend/lib/frontend.h"
-#include "tensorflow/lite/experimental/microfrontend/lib/frontend_util.h"
+#include "tensorflow/lite/microfrontend/lib/frontend.h"
+#include "tensorflow/lite/microfrontend/lib/frontend_util.h"
 
 // Configure FFT to output 16 bit fixed point.
 #define FIXED_POINT 16
