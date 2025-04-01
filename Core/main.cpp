@@ -31,10 +31,10 @@
 #include "micro_features_micro_model_settings.h"
 #include "micro_features_tiny_conv_micro_features_model_data.h"
 #include "recognize_commands.h"
-#include "tensorflow/lite/experimental/micro/kernels/micro_ops.h"
-#include "tensorflow/lite/experimental/micro/micro_error_reporter.h"
-#include "tensorflow/lite/experimental/micro/micro_interpreter.h"
-#include "tensorflow/lite/experimental/micro/micro_mutable_op_resolver.h"
+#include "tensorflow/lite/micro/kernels/micro_ops.h"
+#include "tensorflow/lite/micro/micro_error_reporter.h"
+#include "tensorflow/lite/micro/micro_interpreter.h"
+#include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/version.h"
 
@@ -146,7 +146,7 @@ int main(void)
   BSP_LED_Init(LED_GREEN);
 
   /* Configure the peripherals common clocks */
-  PeriphCommonClock_Config();  //Maybe I should remove this line
+  //PeriphCommonClock_Config();  //Maybe I should remove this line
 
   /* USER CODE BEGIN SysInit */
 
@@ -166,13 +166,14 @@ int main(void)
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
   model = tflite::GetModel(g_tiny_conv_micro_features_model_data);
-  if (model->version() != TFLITE_SCHEMA_VERSION) {
-    error_reporter->Report(
-        "Model provided is schema version %d not equal "
-        "to supported version %d.",
-        model->version(), TFLITE_SCHEMA_VERSION);
-    return;
-  }
+  if(model->version() != TFLITE_SCHEMA_VERSION)
+ {
+   TF_LITE_REPORT_ERROR(error_reporter,
+                          "Model provided is schema version %d not equal "
+                          "to supported version %d.",
+                          model->version(), TFLITE_SCHEMA_VERSION);
+     return 0;
+ }
 
   // Pull in only the operation implementations we need.
   // This relies on a complete list of all the ops needed by this graph.

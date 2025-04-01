@@ -17,8 +17,8 @@ limitations under the License.
 #include <stdio.h>
 
 #define FIXED_POINT 16
-#include "third_party/kissfft/kiss_fft.h"
-#include "third_party/kissfft/tools/kiss_fftr.h"
+#include "../third_party/kissfft/kiss_fft.h"
+#include "../third_party/kissfft/tools/kiss_fftr.h"
 
 int FftPopulateState(struct FftState* state, size_t input_size) {
   state->input_size = input_size;

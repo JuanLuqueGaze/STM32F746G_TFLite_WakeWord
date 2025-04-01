@@ -59,6 +59,7 @@
 									<listOptionValue builtIn="false" value="../third_party/flatbuffers/include"/>
 									<listOptionValue builtIn="false" value="../third_party/gemmlowp"/>
 									<listOptionValue builtIn="false" value="../third_party/ruy"/>
+									<listOptionValue builtIn="false" value="../third_party/kissfft/tools"/>
 									<listOptionValue builtIn="false" value="../FATFS/Target"/>
 									<listOptionValue builtIn="false" value="../FATFS/App"/>
 									<listOptionValue builtIn="false" value="../USB_HOST/App"/>
@@ -94,6 +95,7 @@
 									<listOptionValue builtIn="false" value="../third_party/gemmlowp"/>
 									<listOptionValue builtIn="false" value="../third_party/ruy"/>
 									<listOptionValue builtIn="false" value="../third_party/kissfft"/>
+									<listOptionValue builtIn="false" value="../third_party/kissfft/tools"/>
 									<listOptionValue builtIn="false" value="../FATFS/Target"/>
 									<listOptionValue builtIn="false" value="../FATFS/App"/>
 									<listOptionValue builtIn="false" value="../USB_HOST/App"/>
@@ -188,6 +190,7 @@
 									<listOptionValue builtIn="false" value="../third_party/gemmlowp"/>
 									<listOptionValue builtIn="false" value="../third_party/ruy"/>
 									<listOptionValue builtIn="false" value="../third_party/kissfft"/>
+									<listOptionValue builtIn="false" value="../third_party/kissfft/tools"/>
 									<listOptionValue builtIn="false" value="../FATFS/Target"/>
 									<listOptionValue builtIn="false" value="../FATFS/App"/>
 									<listOptionValue builtIn="false" value="../USB_HOST/App"/>
@@ -222,6 +225,7 @@
 									<listOptionValue builtIn="false" value="../third_party/gemmlowp"/>
 									<listOptionValue builtIn="false" value="../third_party/ruy"/>
 									<listOptionValue builtIn="false" value="../third_party/kissfft"/>
+									<listOptionValue builtIn="false" value="../third_party/kissfft/tools"/>
 									<listOptionValue builtIn="false" value="../FATFS/Target"/>
 									<listOptionValue builtIn="false" value="../FATFS/App"/>
 									<listOptionValue builtIn="false" value="../USB_HOST/App"/>
