@@ -201,10 +201,12 @@ int main(void)
 
   // Allocate memory from the tensor_arena for the model's tensors.
   TfLiteStatus allocate_status = interpreter->AllocateTensors();
-  if (allocate_status != kTfLiteOk) {
-    error_reporter->Report("AllocateTensors() failed");
-    return;
+  if (allocate_status != kTfLiteOk)
+  {
+      TF_LITE_REPORT_ERROR(error_reporter, "AllocateTensors() failed");
+      return 0;
   }
+
 
   // Get information about the memory area to use for the model's input.
   model_input = interpreter->input(0);
@@ -213,7 +215,7 @@ int main(void)
       (model_input->dims->data[2] != kFeatureSliceSize) ||
       (model_input->type != kTfLiteUInt8)) {
     error_reporter->Report("Bad input tensor parameters in model");
-    return;
+    return 0;
   }
 
   // Prepare to access the audio spectrograms from a microphone or other source
@@ -237,20 +239,20 @@ int main(void)
       error_reporter, previous_time, current_time, &how_many_new_slices);
   if (feature_status != kTfLiteOk) {
     error_reporter->Report("Feature generation failed");
-    return;
+    return 0;
   }
   previous_time = current_time;
   // If no new audio samples have been received since last time, don't bother
   // running the network model.
   if (how_many_new_slices == 0) {
-    return;
+    return 0;
   }
 
   // Run the model on the spectrogram input and make sure it succeeds.
   TfLiteStatus invoke_status = interpreter->Invoke();
   if (invoke_status != kTfLiteOk) {
     error_reporter->Report("Invoke failed");
-    return;
+    return 0;
   }
 
   // Obtain a pointer to the output tensor
@@ -263,7 +265,7 @@ int main(void)
       output, current_time, &found_command, &score, &is_new_command);
   if (process_status != kTfLiteOk) {
     error_reporter->Report("RecognizeCommands::ProcessLatestResults() failed");
-    return;
+    return 0;
   }
   // Do something based on the recognized command. The default implementation
   // just prints to the error console, but you should replace this with your
@@ -274,8 +276,6 @@ int main(void)
 
   }
 
-  // Plot the results in the LCD screen
-  handle_output(error_reporter, x_val, y_val);
 }
 
 
