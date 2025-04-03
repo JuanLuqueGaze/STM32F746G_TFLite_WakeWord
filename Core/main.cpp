@@ -77,6 +77,8 @@ namespace {
   uint8_t tensor_arena[kTensorArenaSize];
   }  // namespace
 
+	extern const float INPUT_RANGE = 2.f * 3.14159265359f;
+
   UART_HandleTypeDef DebugUartHandler; //This was not declared before, i don't know if i missed it in a previous step
 
 
