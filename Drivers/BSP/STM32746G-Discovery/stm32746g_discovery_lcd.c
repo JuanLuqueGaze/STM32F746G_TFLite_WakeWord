@@ -121,6 +121,9 @@ EndDependencies */
   * @}
   */ 
 
+
+
+
 /** @defgroup STM32746G_DISCOVERY_LCD_Private_Macros STM32746G_DISCOVERY_LCD Private Macros
   * @{
   */

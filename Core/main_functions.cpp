@@ -17,8 +17,10 @@ limitations under the License.
 #include "audio_provider.h"
 #include "command_responder.h"
 #include "feature_provider.h"
+#include "stm32746g_discovery.h"
 #include "micro_features_micro_model_settings.h"
 #include "micro_features_tiny_conv_micro_features_model_data.h"
+#include "lcd.h"
 #include "recognize_commands.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
 #include "tensorflow/lite/micro/micro_error_reporter.h"
@@ -46,6 +48,10 @@ uint8_t tensor_arena[kTensorArenaSize];
 
 // The name of this function is important for Arduino compatibility.
 void setup() {
+
+
+  
+  BSP_LED_Init(LED_GREEN);
   // Set up logging. Google style is to avoid globals or statics because of
   // lifetime uncertainty, but since this has a trivial destructor it's okay.
   // NOLINTNEXTLINE(runtime-global-variables)
@@ -62,7 +68,6 @@ void setup() {
         model->version(), TFLITE_SCHEMA_VERSION);
     return;
   }
-
   // Pull in only the operation implementations we need.
   // This relies on a complete list of all the ops needed by this graph.
   // An easier approach is to just use the AllOpsResolver, but this will
@@ -94,6 +99,7 @@ void setup() {
     return;
   }
 
+
   // Get information about the memory area to use for the model's input.
   model_input = interpreter->input(0);
   if ((model_input->dims->size != 4) || (model_input->dims->data[0] != 1) ||
@@ -115,19 +121,29 @@ void setup() {
   recognizer = &static_recognizer;
 
   previous_time = 0;
+
 }
 
 // The name of this function is important for Arduino compatibility.
 void loop() {
+
+
+
   // Fetch the spectrogram for the current time.
   const int32_t current_time = LatestAudioTimestamp();
+
+
   int how_many_new_slices = 0;
   TfLiteStatus feature_status = feature_provider->PopulateFeatureData(
       error_reporter, previous_time, current_time, &how_many_new_slices);
+
+  BSP_LED_On(LED_GREEN);
   if (feature_status != kTfLiteOk) {
     error_reporter->Report("Feature generation failed");
     return;
   }
+
+
   previous_time = current_time;
   // If no new audio samples have been received since last time, don't bother
   // running the network model.
@@ -159,4 +175,6 @@ void loop() {
   // own function for a real application.
   RespondToCommand(error_reporter, current_time, found_command, score,
                    is_new_command);
+
+
 }

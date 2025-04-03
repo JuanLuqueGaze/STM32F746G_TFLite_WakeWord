@@ -68,6 +68,8 @@
 /** @defgroup STM32746G_DISCOVERY_LCD_Exported_Types STM32746G_DISCOVERY_LCD Exported Types
   * @{
   */  
+
+
 typedef struct 
 { 
   uint32_t TextColor; 
