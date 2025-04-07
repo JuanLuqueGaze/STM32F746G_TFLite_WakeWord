@@ -18,7 +18,7 @@ limitations under the License.
 
 
 static void uart1_init(void);
-
+void PrintToUart(const char* message);
 static void cpu_cache_enable(void);
 static void error_handler(void);
 // Initializes all data needed for the example. The name is important, and needs
