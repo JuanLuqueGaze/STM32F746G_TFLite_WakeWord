@@ -72,6 +72,7 @@ UART_HandleTypeDef DebugUartHandler;
       return;
     }
   
+    PrintToUart("Model assigned correctly\r\n");
     // Pull in only the operation implementations we need.
     // This relies on a complete list of all the ops needed by this graph.
     // An easier approach is to just use the AllOpsResolver, but this will
@@ -89,6 +90,9 @@ UART_HandleTypeDef DebugUartHandler;
         tflite::ops::micro::Register_FULLY_CONNECTED());
     micro_mutable_op_resolver.AddBuiltin(tflite::BuiltinOperator_SOFTMAX,
                                          tflite::ops::micro::Register_SOFTMAX());
+
+                                         
+    PrintToUart("Ops resolvers working\r\n");
   
     // Build an interpreter to run the model with.
     static tflite::MicroInterpreter static_interpreter(
@@ -96,6 +100,7 @@ UART_HandleTypeDef DebugUartHandler;
         error_reporter);
     interpreter = &static_interpreter;
   
+    PrintToUart("StaticInterpreter working\r\n");
     // Allocate memory from the tensor_arena for the model's tensors.
     TfLiteStatus allocate_status = interpreter->AllocateTensors();
     if (allocate_status != kTfLiteOk) {
@@ -112,6 +117,8 @@ UART_HandleTypeDef DebugUartHandler;
       error_reporter->Report("Bad input tensor parameters in model");
       return;
     }
+
+    PrintToUart("Inputs assigned\r\n");
   
     // Prepare to access the audio spectrograms from a microphone or other source
     // that will provide the inputs to the neural network.
@@ -124,12 +131,19 @@ UART_HandleTypeDef DebugUartHandler;
     recognizer = &static_recognizer;
   
     previous_time = 0;
+
+    PrintToUart("Setup completed\r\n");
   }
   
   // The name of this function is important for Arduino compatibility.
   void loop() {
     // Fetch the spectrogram for the current time.
     const int32_t current_time = LatestAudioTimestamp();
+
+    char buffer[64];
+    sprintf(buffer, "Current time: %ld\r\n", current_time);
+    PrintToUart(buffer);
+    
     int how_many_new_slices = 0;
     TfLiteStatus feature_status = feature_provider->PopulateFeatureData(
         error_reporter, previous_time, current_time, &how_many_new_slices);
@@ -168,6 +182,8 @@ UART_HandleTypeDef DebugUartHandler;
     // own function for a real application.
     RespondToCommand(error_reporter, current_time, found_command, score,
                      is_new_command);
+
+    PrintToUart("Loop completed\r\n");
   }
 
 
@@ -212,3 +228,4 @@ static void cpu_cache_enable(void){
 void PrintToUart(const char* message) {
       HAL_UART_Transmit(&DebugUartHandler, (uint8_t*)message, strlen(message), HAL_MAX_DELAY);
   }
+
