@@ -133,11 +133,13 @@ void loop() {
   const int32_t current_time = LatestAudioTimestamp();
 
 
+
   int how_many_new_slices = 0;
+
+
   TfLiteStatus feature_status = feature_provider->PopulateFeatureData(
       error_reporter, previous_time, current_time, &how_many_new_slices);
 
-  BSP_LED_On(LED_GREEN);
   if (feature_status != kTfLiteOk) {
     error_reporter->Report("Feature generation failed");
     return;
@@ -151,8 +153,10 @@ void loop() {
     return;
   }
 
+  BSP_LED_On(LED_GREEN);
   // Run the model on the spectrogram input and make sure it succeeds.
   TfLiteStatus invoke_status = interpreter->Invoke();
+
   if (invoke_status != kTfLiteOk) {
     error_reporter->Report("Invoke failed");
     return;
