@@ -49,8 +49,8 @@ uint8_t tensor_arena[kTensorArenaSize];
 UART_HandleTypeDef DebugUartHandler;
 // The name of this function is important for Arduino compatibility.
 void setup() {
-
-
+	error_reporter->Report("AllocateTensors() failed");
+	TF_LITE_REPORT_ERROR(error_reporter,"Hi");
   
   BSP_LED_Init(LED_GREEN);
   // Set up logging. Google style is to avoid globals or statics because of
