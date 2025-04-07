@@ -16,6 +16,11 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_EXPERIMENTAL_MICRO_EXAMPLES_MICRO_SPEECH_MAIN_FUNCTIONS_H_
 #define TENSORFLOW_LITE_EXPERIMENTAL_MICRO_EXAMPLES_MICRO_SPEECH_MAIN_FUNCTIONS_H_
 
+
+static void uart1_init(void);
+
+static void cpu_cache_enable(void);
+static void error_handler(void);
 // Initializes all data needed for the example. The name is important, and needs
 // to be setup() for Arduino compatibility.
 void setup();

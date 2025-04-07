@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-
+#include "main_functions.h"
 #include "audio_provider.h"
 #include "command_responder.h"
 #include "feature_provider.h"
@@ -46,6 +46,7 @@ constexpr int kTensorArenaSize = 10 * 1024;
 uint8_t tensor_arena[kTensorArenaSize];
 }  // namespace
 
+UART_HandleTypeDef DebugUartHandler;
 // The name of this function is important for Arduino compatibility.
 void setup() {
 
@@ -62,11 +63,11 @@ void setup() {
   // copying or parsing, it's a very lightweight operation.
   model = tflite::GetModel(g_tiny_conv_micro_features_model_data);
   if (model->version() != TFLITE_SCHEMA_VERSION) {
-    error_reporter->Report(
-        "Model provided is schema version %d not equal "
-        "to supported version %d.",
-        model->version(), TFLITE_SCHEMA_VERSION);
-    return;
+	  TF_LITE_REPORT_ERROR(error_reporter,
+	        "Model provided is schema version %d not equal "
+	        "to supported version %d.",
+	    model->version(), TFLITE_SCHEMA_VERSION);
+	       return;
   }
   // Pull in only the operation implementations we need.
   // This relies on a complete list of all the ops needed by this graph.
@@ -182,3 +183,43 @@ void loop() {
 
 
 }
+
+
+static void uart1_init(void)
+{
+	DebugUartHandler.Instance        = DISCOVERY_COM1;
+ 	DebugUartHandler.Init.BaudRate   = 9600;
+ 	DebugUartHandler.Init.WordLength = UART_WORDLENGTH_8B;
+ 	DebugUartHandler.Init.StopBits   = UART_STOPBITS_1;
+ 	DebugUartHandler.Init.Parity     = UART_PARITY_NONE;
+ 	DebugUartHandler.Init.HwFlowCtl  = UART_HWCONTROL_NONE;
+ 	DebugUartHandler.Init.Mode       = UART_MODE_TX_RX;
+ 	DebugUartHandler.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+ 
+ 	if(HAL_UART_DeInit(&DebugUartHandler) != HAL_OK)
+ 	{
+ 		error_handler();
+ 	}
+ 	if(HAL_UART_Init(&DebugUartHandler) != HAL_OK)
+ 	{
+ 	    error_handler();
+ 	}
+
+}
+
+static void error_handler(void)
+{
+  // Turn Green LED ON
+  BSP_LED_On(LED_GREEN);
+  while(1);
+}
+
+
+static void cpu_cache_enable(void){
+  // Enable I-Cache
+     SCB_EnableICache();
+ 
+   /* USER CODE END Error_Handler_Debug */
+     // Enable D-Cache
+     SCB_EnableDCache();
+    }
