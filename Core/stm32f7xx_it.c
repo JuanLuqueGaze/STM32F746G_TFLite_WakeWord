@@ -186,6 +186,7 @@ void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef *hsai) {
 }
 
 
+
 extern UART_HandleTypeDef DebugUartHandler;  // Ensure this is declared elsewhere
 void PrintToUart(const char* message) {
   HAL_UART_Transmit(&DebugUartHandler, (uint8_t*)message, strlen(message), HAL_MAX_DELAY);

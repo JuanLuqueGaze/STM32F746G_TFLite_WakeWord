@@ -428,6 +428,9 @@ void MX_SAI1_Init(void) {
   hsai_BlockA1.Init.MonoStereoMode = SAI_MONOMODE;
   hsai_BlockA1.Init.CompandingMode = SAI_NOCOMPANDING;
   hsai_BlockA1.Init.TriState = SAI_OUTPUT_NOTRELEASED;
+  hsai_BlockA1.hdmarx->XferHalfCpltCallback = HAL_SAI_RxHalfCpltCallback;
+  hsai_BlockA1.hdmarx->XferCpltCallback = HAL_SAI_RxCpltCallback;
+
   if (HAL_SAI_Init(&hsai_BlockA1) != HAL_OK) {
     error_handler();
   }
