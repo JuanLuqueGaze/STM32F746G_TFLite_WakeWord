@@ -16,6 +16,7 @@ limitations under the License.
 #include "main_functions.h"
 #include "audio_provider.h"
 #include "command_responder.h"
+#include "uart_utils.h"
 #include "feature_provider.h"
 #include "stm32746g_discovery.h"
 #include "micro_features_micro_model_settings.h"
@@ -42,7 +43,7 @@ namespace {
   // Create an area of memory to use for input, output, and intermediate arrays.
   // The size of this will depend on the model you're using, and may need to be
   // determined by experimentation.
-  constexpr int kTensorArenaSize = 10 * 1024;
+  constexpr int kTensorArenaSize = 16 * 1024;
   uint8_t tensor_arena[kTensorArenaSize];
   }  // namespace
   
@@ -50,8 +51,7 @@ namespace {
 UART_HandleTypeDef DebugUartHandler;
   // The name of this function is important for Arduino compatibility.
   void setup() {
-
-
+	  BSP_LED_Init(LED_GREEN);
     //Initialize the uart
     uart1_init();
     PrintToUart("UART Initialized!\r\n");
@@ -65,6 +65,7 @@ UART_HandleTypeDef DebugUartHandler;
     // copying or parsing, it's a very lightweight operation.
     model = tflite::GetModel(g_tiny_conv_micro_features_model_data);
     if (model->version() != TFLITE_SCHEMA_VERSION) {
+      PrintToUart("Version is not correct\r\n");
       error_reporter->Report(
           "Model provided is schema version %d not equal "
           "to supported version %d.",
@@ -104,6 +105,7 @@ UART_HandleTypeDef DebugUartHandler;
     // Allocate memory from the tensor_arena for the model's tensors.
     TfLiteStatus allocate_status = interpreter->AllocateTensors();
     if (allocate_status != kTfLiteOk) {
+      PrintToUart("AllocateTensors() failed\r\n");
       error_reporter->Report("AllocateTensors() failed");
       return;
     }
@@ -114,6 +116,7 @@ UART_HandleTypeDef DebugUartHandler;
         (model_input->dims->data[1] != kFeatureSliceCount) ||
         (model_input->dims->data[2] != kFeatureSliceSize) ||
         (model_input->type != kTfLiteUInt8)) {
+          PrintToUart("Bad input tensor parameters in model\r\n");
       error_reporter->Report("Bad input tensor parameters in model");
       return;
     }
@@ -148,6 +151,7 @@ UART_HandleTypeDef DebugUartHandler;
     TfLiteStatus feature_status = feature_provider->PopulateFeatureData(
         error_reporter, previous_time, current_time, &how_many_new_slices);
     if (feature_status != kTfLiteOk) {
+      PrintToUart("Feature generation failed\r\n");
       error_reporter->Report("Feature generation failed");
       return;
     }
@@ -161,6 +165,7 @@ UART_HandleTypeDef DebugUartHandler;
     // Run the model on the spectrogram input and make sure it succeeds.
     TfLiteStatus invoke_status = interpreter->Invoke();
     if (invoke_status != kTfLiteOk) {
+      PrintToUart("Invoke failed\r\n");
       error_reporter->Report("Invoke failed");
       return;
     }
@@ -174,17 +179,77 @@ UART_HandleTypeDef DebugUartHandler;
     TfLiteStatus process_status = recognizer->ProcessLatestResults(
         output, current_time, &found_command, &score, &is_new_command);
     if (process_status != kTfLiteOk) {
+      PrintToUart("RecognizeCommands::ProcessLatestResults() failed\r\n");
       error_reporter->Report("RecognizeCommands::ProcessLatestResults() failed");
       return;
     }
+
+
+
+    // Print the recognized command, score, and whether it's a new command
+char result_buffer[128];
+sprintf(result_buffer, "Command: %s, Score: %u, Is New: %s\r\n",
+        found_command, score, is_new_command ? "true" : "false");
+PrintToUart(result_buffer);
+
+
     // Do something based on the recognized command. The default implementation
     // just prints to the error console, but you should replace this with your
     // own function for a real application.
     RespondToCommand(error_reporter, current_time, found_command, score,
                      is_new_command);
 
+
+
     PrintToUart("Loop completed\r\n");
   }
+
+
+  void system_clock_config(void)
+ {
+   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+
+   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
+    // Enable HSE Oscillator and activate PLL with HSE as source
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+    RCC_OscInitStruct.HSEState       = RCC_HSE_ON;
+    RCC_OscInitStruct.PLL.PLLState   = RCC_PLL_ON;
+    RCC_OscInitStruct.PLL.PLLSource  = RCC_PLLSOURCE_HSE;
+    RCC_OscInitStruct.PLL.PLLM       = 25;
+    RCC_OscInitStruct.PLL.PLLN       = 400;
+    RCC_OscInitStruct.PLL.PLLP       = RCC_PLLP_DIV2;
+    RCC_OscInitStruct.PLL.PLLQ       = 9;
+
+    if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+   {
+     error_handler();
+   }
+
+   /** Activate the Over-Drive mode
+   */
+   if(HAL_PWREx_EnableOverDrive() != HAL_OK)
+   {
+     error_handler();
+   }
+
+   /** Initializes the CPU, AHB and APB buses clocks
+   */
+
+    // Initializes the CPU, AHB and APB busses clocks
+   RCC_ClkInitStruct.ClockType      = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+   RCC_ClkInitStruct.SYSCLKSource   = RCC_SYSCLKSOURCE_PLLCLK;
+   RCC_ClkInitStruct.AHBCLKDivider  = RCC_SYSCLK_DIV1;
+   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+
+   if(HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_6) != HAL_OK)
+   {
+     error_handler();
+   }
+ }
 
 
 static void uart1_init(void)
@@ -210,11 +275,12 @@ static void uart1_init(void)
 }
 
 static void error_handler(void)
-{
-  // Turn Green LED ON
+ {
+  const char* error_msg = "Error occurred. Entering error handler.\n";
+  HAL_UART_Transmit(&DebugUartHandler, (uint8_t*)error_msg, strlen(error_msg), HAL_MAX_DELAY);
   BSP_LED_On(LED_GREEN);
-  while(1);
-}
+  while (1);
+ }
 
 
 static void cpu_cache_enable(void){
@@ -225,7 +291,5 @@ static void cpu_cache_enable(void){
      // Enable D-Cache
      SCB_EnableDCache();
     }
-void PrintToUart(const char* message) {
-      HAL_UART_Transmit(&DebugUartHandler, (uint8_t*)message, strlen(message), HAL_MAX_DELAY);
-  }
+
 
