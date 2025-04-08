@@ -31,7 +31,7 @@ limitations under the License.
 #include "tensorflow/lite/version.h"
 
 
-// Globals, used for compatibility with Arduino-style sketches.
+// Model declaration
 namespace {
   tflite::ErrorReporter* error_reporter = nullptr;
   const tflite::Model* model = nullptr;
@@ -44,96 +44,154 @@ namespace {
   // Create an area of memory to use for input, output, and intermediate arrays.
   // The size of this will depend on the model you're using, and may need to be
   // determined by experimentation.
-  constexpr int kTensorArenaSize = 16 * 1024;
-  uint8_t tensor_arena[kTensorArenaSize];
+  constexpr int kTensorArenaSize = 10 * 1024;
+  alignas(16) uint8_t tensor_arena[kTensorArenaSize]; //This is done to avoid errors in the model
   }  // namespace
   
+
+// Definitions of objets and buffers used in the code
 #define AUDIO_BUFFER_SIZE 2048
 uint8_t dma_audio_buffer[AUDIO_BUFFER_SIZE];
 SAI_HandleTypeDef hsai_BlockA1;
 DMA_HandleTypeDef hdma_sai1_a;
 UART_HandleTypeDef DebugUartHandler;
-  // The name of this function is important for Arduino compatibility.
+
+
+
+  // This is the setup function, executed once at startup.
   void setup() {
-	  BSP_LED_Init(LED_GREEN);
-    //Initialize the uart
-    uart1_init();
-    MX_SAI1_Init();      // Your SAI initialization function
-    PrintToUart("UART Initialized!\r\n");
-    // Set up logging. Google style is to avoid globals or statics because of
-    // lifetime uncertainty, but since this has a trivial destructor it's okay.
-    // NOLINTNEXTLINE(runtime-global-variables)
-    static tflite::MicroErrorReporter micro_error_reporter;
-    error_reporter = &micro_error_reporter;
-    HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*)dma_audio_buffer, AUDIO_BUFFER_SIZE);
-    // Map the model into a usable data structure. This doesn't involve any
-    // copying or parsing, it's a very lightweight operation.
-    model = tflite::GetModel(g_tiny_conv_micro_features_model_data);
-    if (model->version() != TFLITE_SCHEMA_VERSION) {
-      PrintToUart("Version is not correct\r\n");
-      error_reporter->Report(
-          "Model provided is schema version %d not equal "
-          "to supported version %d.",
-          model->version(), TFLITE_SCHEMA_VERSION);
-      return;
-    }
-  
+    
+	BSP_LED_Init(LED_GREEN);  //Initilize the LED, which can be used for debugging
+
+  uart1_init(); //Initialize the uart
+  PrintToUart("UART Initialized\r\n"); //Debug message for the UART initialization
+
+  MX_SAI1_Init();      // Initialize the SAI peripheral and outputs a message to verify it
+
+  // Tensorflow code, instantiate the error reporter to report errors to the UART
+  static tflite::MicroErrorReporter micro_error_reporter;
+  error_reporter = &micro_error_reporter;
+
+
+  /* This is a function of the library stm32f7xx_hal_sai.c. There should not be any issue with it because it was already
+  defined in the library. What this function does is initialize the SAI peripheral to receive data using DMA. */
+  HAL_StatusTypeDef SAI_Receive_DMA_Debug = HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*)dma_audio_buffer, AUDIO_BUFFER_SIZE);
+
+  if (SAI_Receive_DMA_Debug != HAL_OK) {
+    PrintToUart("HAL_SAI_Receive_DMA failed\r\n");
+    error_handler();  
+  }
+  else
+  {
+    PrintToUart("HAL_SAI_Receive_DMA succeded\r\n");
+  }
+
+  /* Map the model into a usable data structure. This doesn't involve any copying or parsing, 
+  it's a very lightweight operation. It's just assign the model to a tflite struct model */
+  model = tflite::GetModel(g_tiny_conv_micro_features_model_data);
+  if (model->version() != TFLITE_SCHEMA_VERSION) {
+    PrintToUart("Version is not correct\r\n");
+    error_handler();
+    return;
+  }
+  else
+  {
     PrintToUart("Model assigned correctly\r\n");
-    // Pull in only the operation implementations we need.
-    // This relies on a complete list of all the ops needed by this graph.
-    // An easier approach is to just use the AllOpsResolver, but this will
-    // incur some penalty in code space for op implementations that are not
-    // needed by this graph.
-    //
-    // tflite::ops::micro::AllOpsResolver resolver;
-    // NOLINTNEXTLINE(runtime-global-variables)
-    static tflite::MicroMutableOpResolver micro_mutable_op_resolver;
-    micro_mutable_op_resolver.AddBuiltin(
-        tflite::BuiltinOperator_DEPTHWISE_CONV_2D,
-        tflite::ops::micro::Register_DEPTHWISE_CONV_2D());
-    micro_mutable_op_resolver.AddBuiltin(
-        tflite::BuiltinOperator_FULLY_CONNECTED,
-        tflite::ops::micro::Register_FULLY_CONNECTED());
-    micro_mutable_op_resolver.AddBuiltin(tflite::BuiltinOperator_SOFTMAX,
-                                         tflite::ops::micro::Register_SOFTMAX());
+  }
+  /* Code copied from the tensorflow official repository
+  // Pull in only the operation implementations we need.
+  // This relies on a complete list of all the ops needed by this graph.
+  // An easier approach is to just use the AllOpsResolver, but this will
+  // incur some penalty in code space for op implementations that are not
+  // needed by this graph.
+  //
+  // tflite::ops::micro::AllOpsResolver resolver;
+  // NOLINTNEXTLINE(runtime-global-variables)
+  */
 
-                                         
-    PrintToUart("Ops resolvers working\r\n");
-  
-    // Build an interpreter to run the model with.
-    static tflite::MicroInterpreter static_interpreter(
-        model, micro_mutable_op_resolver, tensor_arena, kTensorArenaSize,
-        error_reporter);
-    interpreter = &static_interpreter;
-  
-    PrintToUart("StaticInterpreter working\r\n");
-    // Allocate memory from the tensor_arena for the model's tensors.
-    TfLiteStatus allocate_status = interpreter->AllocateTensors();
-    if (allocate_status != kTfLiteOk) {
-      PrintToUart("AllocateTensors() failed\r\n");
-      error_reporter->Report("AllocateTensors() failed");
-      return;
-    }
-  
-    // Get information about the memory area to use for the model's input.
-    model_input = interpreter->input(0);
-    if ((model_input->dims->size != 4) || (model_input->dims->data[0] != 1) ||
-        (model_input->dims->data[1] != kFeatureSliceCount) ||
-        (model_input->dims->data[2] != kFeatureSliceSize) ||
-        (model_input->type != kTfLiteUInt8)) {
-          PrintToUart("Bad input tensor parameters in model\r\n");
-      error_reporter->Report("Bad input tensor parameters in model");
-      return;
-    }
 
-    PrintToUart("Inputs assigned\r\n");
+  static tflite::MicroMutableOpResolver micro_mutable_op_resolver;
+  TfLiteStatus BuiltinOperator_StatusDebug_1 = micro_mutable_op_resolver.AddBuiltin(
+      tflite::BuiltinOperator_DEPTHWISE_CONV_2D,
+      tflite::ops::micro::Register_DEPTHWISE_CONV_2D());
+  TfLiteStatus BuiltinOperator_StatusDebug_2 = micro_mutable_op_resolver.AddBuiltin(
+      tflite::BuiltinOperator_FULLY_CONNECTED,
+      tflite::ops::micro::Register_FULLY_CONNECTED());
+  TfLiteStatus BuiltinOperator_StatusDebug_3 =micro_mutable_op_resolver.AddBuiltin(tflite::BuiltinOperator_SOFTMAX,
+                                       tflite::ops::micro::Register_SOFTMAX());
+
+  //Checks if the layers are correctly assigned to the ops resolver. If not, it will enter the error handler.
+  if (BuiltinOperator_StatusDebug_1 != kTfLiteOk) {
+    PrintToUart("First layer wrongly assigned\r\n");
+    error_handler();  
+  }
+  else
+  {
+    PrintToUart("First layer correctly assigned\r\n");
+  } 
   
-    // Prepare to access the audio spectrograms from a microphone or other source
-    // that will provide the inputs to the neural network.
-    // NOLINTNEXTLINE(runtime-global-variables)
-    static FeatureProvider static_feature_provider(kFeatureElementCount,
-                                                   model_input->data.uint8);
-    feature_provider = &static_feature_provider;
+  if (BuiltinOperator_StatusDebug_1 != kTfLiteOk) {
+    PrintToUart("Second layer wrongly assigned\r\n");
+    error_handler();  
+  }
+  else
+  {
+    PrintToUart("Second layer correctly assigned\r\n");
+  }      
+
+  if (BuiltinOperator_StatusDebug_1 != kTfLiteOk) {
+    PrintToUart("Third layer wrongly assigned\r\n");
+    error_handler();  
+  }
+  else
+  {
+    PrintToUart("Third layer correctly assigned\r\n");
+  }      
+
+  PrintToUart("Ops resolvers working\r\n"); //Debug for ops resolver
+  
+  // Build an interpreter to run the model with.
+  static tflite::MicroInterpreter static_interpreter(
+      model, micro_mutable_op_resolver, tensor_arena, kTensorArenaSize,
+      error_reporter);
+  interpreter = &static_interpreter;
+  
+  // Allocate memory from the tensor_arena for the model's tensors.
+  TfLiteStatus allocate_status = interpreter->AllocateTensors();
+  if (allocate_status != kTfLiteOk) {
+    PrintToUart("AllocateTensors() failed\r\n");
+    error_handler();
+  }
+  else{
+    PrintToUart("AllocateTensors() succeded\r\n");
+  }
+  
+  // Get information about the memory area to use for the model's input.
+  model_input = interpreter->input(0);
+  if ((model_input->dims->size != 4) || (model_input->dims->data[0] != 1) ||
+      (model_input->dims->data[1] != kFeatureSliceCount) ||
+      (model_input->dims->data[2] != kFeatureSliceSize) ||
+      (model_input->type != kTfLiteUInt8)) {
+        PrintToUart("Bad input tensor parameters in model\r\n");
+        error_handler();
+      }
+
+  PrintToUart("Inputs assigned\r\n");
+  
+  /* Prepare to access the audio spectrograms from a microphone or other source
+  that will provide the inputs to the neural network.
+  NOLINTNEXTLINE(runtime-global-variables) */
+
+  //This line seems to be critical in order to find the error
+
+  
+  /* Feature Provider is a tflite class which is used to provide the input data to the model in a suitable format.
+     With kFeatureElementCount we define the number of elements in the input data (the size of the input vector).
+     With model_input->data.uint8 we define the input data type, which is uint8_t in this case and we create a pointer
+     to the input of the model .*/
+  static FeatureProvider static_feature_provider(kFeatureElementCount,
+                                                model_input->data.uint8);
+  feature_provider = &static_feature_provider;
   
     static RecognizeCommands static_recognizer(error_reporter);
     recognizer = &static_recognizer;
@@ -153,10 +211,12 @@ UART_HandleTypeDef DebugUartHandler;
     PrintToUart(buffer);
     
     int how_many_new_slices = 0;
+
     TfLiteStatus feature_status = feature_provider->PopulateFeatureData(
         error_reporter, previous_time, current_time, &how_many_new_slices);
     if (feature_status != kTfLiteOk) {
       PrintToUart("Feature generation failed\r\n");
+      error_handler();
       error_reporter->Report("Feature generation failed");
       return;
     }
@@ -172,6 +232,7 @@ UART_HandleTypeDef DebugUartHandler;
     if (invoke_status != kTfLiteOk) {
       PrintToUart("Invoke failed\r\n");
       error_reporter->Report("Invoke failed");
+      error_handler();
       return;
     }
   
@@ -186,6 +247,7 @@ UART_HandleTypeDef DebugUartHandler;
     if (process_status != kTfLiteOk) {
       PrintToUart("RecognizeCommands::ProcessLatestResults() failed\r\n");
       error_reporter->Report("RecognizeCommands::ProcessLatestResults() failed");
+      error_handler();
       return;
     }
 
@@ -272,10 +334,20 @@ static void uart1_init(void)
  	{
  		error_handler();
  	}
+   else
+  {
+     PrintToUart("UART DeInit working correctly\r\n");
+  }
+
  	if(HAL_UART_Init(&DebugUartHandler) != HAL_OK)
  	{
  	    error_handler();
  	}
+  else
+  {
+      PrintToUart("UART Init working correctly\r\n");
+ 	}
+
 
 }
 
@@ -322,7 +394,7 @@ static void cpu_cache_enable(void){
         hdma_sai1_a.Init.PeriphInc = DMA_PINC_DISABLE;
         hdma_sai1_a.Init.MemInc = DMA_MINC_ENABLE;
         hdma_sai1_a.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
-        hdma_sai1_a.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+        hdma_sai1_a.Init.MemDataAlignment = DMA_PDATAALIGN_HALFWORD;
         hdma_sai1_a.Init.Mode = DMA_CIRCULAR;
         hdma_sai1_a.Init.Priority = DMA_PRIORITY_HIGH;
         hdma_sai1_a.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
@@ -350,16 +422,19 @@ void MX_SAI1_Init(void) {
   hsai_BlockA1.Init.MonoStereoMode = SAI_MONOMODE;
   hsai_BlockA1.Init.CompandingMode = SAI_NOCOMPANDING;
   hsai_BlockA1.Init.TriState = SAI_OUTPUT_NOTRELEASED;
-
   if (HAL_SAI_Init(&hsai_BlockA1) != HAL_OK) {
     error_handler();
+  }
+  else {
+    PrintToUart("SAI1 Initialized successfully\r\n");
   }
 }
 
 void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
   // Copy first half of dma_audio_buffer to ring buffer
+  ProcessAudioData(&dma_audio_buffer[0], AUDIO_BUFFER_SIZE / 2);
 }
 
 void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef *hsai) {
-  // Copy second half of dma_audio_buffer to ring buffer
+  ProcessAudioData(&dma_audio_buffer[AUDIO_BUFFER_SIZE / 2], AUDIO_BUFFER_SIZE / 2);
 }

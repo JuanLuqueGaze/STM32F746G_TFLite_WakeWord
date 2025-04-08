@@ -27,6 +27,8 @@ limitations under the License.
 // The reference implementation can have no platform-specific dependencies, so
 // it just returns an array filled with zeros. For real applications, you should
 // ensure there's a specialized implementation that accesses hardware APIs.
+void ProcessAudioData(uint8_t* data, int length);
+
 TfLiteStatus GetAudioSamples(tflite::ErrorReporter* error_reporter,
                              int start_ms, int duration_ms,
                              int* audio_samples_size, int16_t** audio_samples);
