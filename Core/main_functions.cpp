@@ -48,7 +48,10 @@ namespace {
   uint8_t tensor_arena[kTensorArenaSize];
   }  // namespace
   
-
+#define AUDIO_BUFFER_SIZE 2048
+uint8_t dma_audio_buffer[AUDIO_BUFFER_SIZE];
+SAI_HandleTypeDef hsai_BlockA1;
+DMA_HandleTypeDef hdma_sai1_a;
 UART_HandleTypeDef DebugUartHandler;
   // The name of this function is important for Arduino compatibility.
   void setup() {
@@ -334,8 +337,6 @@ static void cpu_cache_enable(void){
     }
     
 
-    SAI_HandleTypeDef hsai_BlockA1;
-DMA_HandleTypeDef hdma_sai1_a;
 
 void MX_SAI1_Init(void) {
   hsai_BlockA1.Instance = SAI1_Block_A;
@@ -351,7 +352,7 @@ void MX_SAI1_Init(void) {
   hsai_BlockA1.Init.TriState = SAI_OUTPUT_NOTRELEASED;
 
   if (HAL_SAI_Init(&hsai_BlockA1) != HAL_OK) {
-    Error_Handler();
+    error_handler();
   }
 }
 
