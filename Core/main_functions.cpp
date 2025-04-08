@@ -436,11 +436,3 @@ void MX_SAI1_Init(void) {
   }
 }
 
-void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
-  // Copy first half of dma_audio_buffer to ring buffer
-  ProcessAudioData(&dma_audio_buffer[0], AUDIO_BUFFER_SIZE / 2);
-}
-
-void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef *hsai) {
-  ProcessAudioData(&dma_audio_buffer[AUDIO_BUFFER_SIZE / 2], AUDIO_BUFFER_SIZE / 2);
-}

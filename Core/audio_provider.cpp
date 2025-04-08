@@ -41,9 +41,10 @@ TfLiteStatus GetAudioSamples(tflite::ErrorReporter* error_reporter,
     *audio_samples = &audio_capture_buffer[capture_start];
     *audio_samples_size = length;
 
-printf("Audio buffer content: %d %d %d %d...\n", audio_capture_buffer[0], audio_capture_buffer[1], audio_capture_buffer[2], audio_capture_buffer[3]);
+//printf("Audio buffer content: %d %d %d %d...\n", audio_capture_buffer[0], audio_capture_buffer[1], audio_capture_buffer[2], audio_capture_buffer[3]);
 return kTfLiteOk;
 }
+
 void ProcessAudioData(uint8_t* data, int length) {
   // Convert the 8-bit DMA buffer to 16-bit audio samples and store in the capture buffer
   for (int i = 0; i < length; ++i) {

@@ -157,3 +157,36 @@ extern DMA_HandleTypeDef hdma_sai1_a;  // Declare the DMA handle
 void DMA2_Stream1_IRQHandler(void) {
   HAL_DMA_IRQHandler(&hdma_sai1_a);
 }
+
+// DMA Callbacks
+void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
+  // Read raw data directly from the SAI data register
+  uint32_t raw_data = hsai->Instance->DR;
+
+  // Print the raw data to the UART
+  char debug_msg[64];
+  sprintf(debug_msg, "Raw SAI data (half): %lu\r\n", raw_data);
+  PrintToUart(debug_msg);
+
+  // Process the DMA buffer as usual
+  //ProcessAudioData(&dma_audio_buffer[0], AUDIO_BUFFER_SIZE / 2);
+}
+
+void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef *hsai) {
+  // Read raw data directly from the SAI data register
+  uint32_t raw_data = hsai->Instance->DR;
+
+  // Print the raw data to the UART
+  char debug_msg[64];
+  sprintf(debug_msg, "Raw SAI data (full): %lu\r\n", raw_data);
+  PrintToUart(debug_msg);
+
+  // Process the DMA buffer as usual
+  //ProcessAudioData(&dma_audio_buffer[AUDIO_BUFFER_SIZE / 2], AUDIO_BUFFER_SIZE / 2);
+}
+
+
+extern UART_HandleTypeDef DebugUartHandler;  // Ensure this is declared elsewhere
+void PrintToUart(const char* message) {
+  HAL_UART_Transmit(&DebugUartHandler, (uint8_t*)message, strlen(message), HAL_MAX_DELAY);
+}
