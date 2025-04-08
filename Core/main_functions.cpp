@@ -30,6 +30,7 @@ limitations under the License.
 #include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/version.h"
 
+
 // Globals, used for compatibility with Arduino-style sketches.
 namespace {
   tflite::ErrorReporter* error_reporter = nullptr;
@@ -54,13 +55,14 @@ UART_HandleTypeDef DebugUartHandler;
 	  BSP_LED_Init(LED_GREEN);
     //Initialize the uart
     uart1_init();
+    MX_SAI1_Init();      // Your SAI initialization function
     PrintToUart("UART Initialized!\r\n");
     // Set up logging. Google style is to avoid globals or statics because of
     // lifetime uncertainty, but since this has a trivial destructor it's okay.
     // NOLINTNEXTLINE(runtime-global-variables)
     static tflite::MicroErrorReporter micro_error_reporter;
     error_reporter = &micro_error_reporter;
-  
+    HAL_SAI_Receive_DMA(&hsai_BlockA1, (uint8_t*)dma_audio_buffer, AUDIO_BUFFER_SIZE);
     // Map the model into a usable data structure. This doesn't involve any
     // copying or parsing, it's a very lightweight operation.
     model = tflite::GetModel(g_tiny_conv_micro_features_model_data);
@@ -293,3 +295,70 @@ static void cpu_cache_enable(void){
     }
 
 
+    void HAL_SAI_MspInit(SAI_HandleTypeDef* hsai) {
+      if (hsai->Instance == SAI1_Block_A) {
+        __HAL_RCC_SAI1_CLK_ENABLE();
+        __HAL_RCC_DMA2_CLK_ENABLE(); // DMA2 is used for SAI1
+    
+        // Configure GPIOs (e.g., for data pin SD, clock SCK, etc.)
+        // You can copy from CubeMX example or reference manual.
+        // Example: Use PE6 for SAI1_SD_A (data line)
+        __HAL_RCC_GPIOE_CLK_ENABLE();
+        GPIO_InitTypeDef GPIO_InitStruct = {0};
+        GPIO_InitStruct.Pin = GPIO_PIN_6;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+        GPIO_InitStruct.Alternate = GPIO_AF6_SAI1;
+        HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+    
+        // DMA Configuration for SAI1 Block A RX
+        hdma_sai1_a.Instance = DMA2_Stream1;
+        hdma_sai1_a.Init.Channel = DMA_CHANNEL_0;
+        hdma_sai1_a.Init.Direction = DMA_PERIPH_TO_MEMORY;
+        hdma_sai1_a.Init.PeriphInc = DMA_PINC_DISABLE;
+        hdma_sai1_a.Init.MemInc = DMA_MINC_ENABLE;
+        hdma_sai1_a.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+        hdma_sai1_a.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+        hdma_sai1_a.Init.Mode = DMA_CIRCULAR;
+        hdma_sai1_a.Init.Priority = DMA_PRIORITY_HIGH;
+        hdma_sai1_a.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    
+        HAL_DMA_Init(&hdma_sai1_a);
+        __HAL_LINKDMA(hsai, hdmarx, hdma_sai1_a);
+    
+        // Enable DMA interrupt
+        HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 0, 0);
+        HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
+      }
+    }
+    
+
+    SAI_HandleTypeDef hsai_BlockA1;
+DMA_HandleTypeDef hdma_sai1_a;
+
+void MX_SAI1_Init(void) {
+  hsai_BlockA1.Instance = SAI1_Block_A;
+  hsai_BlockA1.Init.AudioMode = SAI_MODEMASTER_RX;
+  hsai_BlockA1.Init.Synchro = SAI_ASYNCHRONOUS;
+  hsai_BlockA1.Init.OutputDrive = SAI_OUTPUTDRIVE_DISABLE;
+  hsai_BlockA1.Init.NoDivider = SAI_MASTERDIVIDER_ENABLE;
+  hsai_BlockA1.Init.FIFOThreshold = SAI_FIFOTHRESHOLD_1QF;
+  hsai_BlockA1.Init.AudioFrequency = SAI_AUDIO_FREQUENCY_16K;
+  hsai_BlockA1.Init.SynchroExt = SAI_SYNCEXT_DISABLE;
+  hsai_BlockA1.Init.MonoStereoMode = SAI_MONOMODE;
+  hsai_BlockA1.Init.CompandingMode = SAI_NOCOMPANDING;
+  hsai_BlockA1.Init.TriState = SAI_OUTPUT_NOTRELEASED;
+
+  if (HAL_SAI_Init(&hsai_BlockA1) != HAL_OK) {
+    Error_Handler();
+  }
+}
+
+void HAL_SAI_RxHalfCpltCallback(SAI_HandleTypeDef *hsai) {
+  // Copy first half of dma_audio_buffer to ring buffer
+}
+
+void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef *hsai) {
+  // Copy second half of dma_audio_buffer to ring buffer
+}

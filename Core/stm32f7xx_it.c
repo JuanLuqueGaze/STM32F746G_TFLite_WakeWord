@@ -153,3 +153,6 @@ void SysTick_Handler(void)
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */
+void DMA2_Stream1_IRQHandler(void) {
+  HAL_DMA_IRQHandler(&hdma_sai1_a);
+}
