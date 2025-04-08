@@ -31,8 +31,9 @@ sprintf(debug_buffer, "GetAudioSamples called with start_ms: %d, duration_ms: %d
 PrintToUart(debug_buffer);
 
 // Fill the dummy audio buffer with zeros (replace this with real microphone data)
+// Replace the dummy audio buffer with ADC data
 for (int i = 0; i < kMaxAudioSampleSize; ++i) {
-g_dummy_audio_data[i] = 0;  // Replace this with real microphone data
+  g_dummy_audio_data[i] = ReadADC();  // Replace with actual ADC read function
 }
 
 // Set the audio samples and size
