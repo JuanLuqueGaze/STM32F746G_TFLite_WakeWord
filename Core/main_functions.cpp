@@ -182,48 +182,56 @@ UART_HandleTypeDef DebugUartHandler;
   that will provide the inputs to the neural network.
   NOLINTNEXTLINE(runtime-global-variables) */
 
-  //This line seems to be critical in order to find the error
 
+
+  //This line seems to be critical in order to find the error
+  //It wasn't that important, but the input kFeatureElementCount is important and the other variables inside the file that defines it also. 
   
   /* Feature Provider is a tflite class which is used to provide the input data to the model in a suitable format.
      With kFeatureElementCount we define the number of elements in the input data (the size of the input vector).
      With model_input->data.uint8 we define the input data type, which is uint8_t in this case and we create a pointer
-     to the input of the model .*/
+     to the input of the model. That makes the variable feature_provider to directly point to that memory location*/
   static FeatureProvider static_feature_provider(kFeatureElementCount,
                                                 model_input->data.uint8);
   feature_provider = &static_feature_provider;
+  /* RecognizeCommands is also a tflite class. It helps with the audio processing. It's a quite complex class, with status 
+  and structs inside. Later, we'll call some of them for debugging. */
+  static RecognizeCommands static_recognizer(error_reporter);
+  recognizer = &static_recognizer;
   
-    static RecognizeCommands static_recognizer(error_reporter);
-    recognizer = &static_recognizer;
-  
-    previous_time = 0;
+  previous_time = 0;
 
-    PrintToUart("Setup completed\r\n");
+  PrintToUart("Setup completed\r\n");
   }
   
   // The name of this function is important for Arduino compatibility.
   void loop() {
     // Fetch the spectrogram for the current time.
+    // It might be failing because it doesn't get the timestamp correctly
     const int32_t current_time = LatestAudioTimestamp();
-
+    // I print the current time
     char buffer[64];
     sprintf(buffer, "Current time: %ld\r\n", current_time);
     PrintToUart(buffer);
     
     int how_many_new_slices = 0;
 
+    // Here should be the main problem
+    
     TfLiteStatus feature_status = feature_provider->PopulateFeatureData(
         error_reporter, previous_time, current_time, &how_many_new_slices);
     if (feature_status != kTfLiteOk) {
       PrintToUart("Feature generation failed\r\n");
       error_handler();
-      error_reporter->Report("Feature generation failed");
       return;
     }
+
+
     previous_time = current_time;
     // If no new audio samples have been received since last time, don't bother
     // running the network model.
     if (how_many_new_slices == 0) {
+      PrintToUart("No new slices\r\n");
       return;
     }
   
@@ -231,7 +239,6 @@ UART_HandleTypeDef DebugUartHandler;
     TfLiteStatus invoke_status = interpreter->Invoke();
     if (invoke_status != kTfLiteOk) {
       PrintToUart("Invoke failed\r\n");
-      error_reporter->Report("Invoke failed");
       error_handler();
       return;
     }
@@ -246,7 +253,6 @@ UART_HandleTypeDef DebugUartHandler;
         output, current_time, &found_command, &score, &is_new_command);
     if (process_status != kTfLiteOk) {
       PrintToUart("RecognizeCommands::ProcessLatestResults() failed\r\n");
-      error_reporter->Report("RecognizeCommands::ProcessLatestResults() failed");
       error_handler();
       return;
     }
