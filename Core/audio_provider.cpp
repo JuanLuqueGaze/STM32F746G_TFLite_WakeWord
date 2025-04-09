@@ -36,6 +36,22 @@ namespace {
     for (int i = 0; i < kMaxAudioSampleSize; ++i) {
       g_dummy_audio_data[i] = expected_feature[i];
     }
+        // Print the buffer data
+        PrintToUart("Buffer Data:\r\n");
+        for (int i = 0; i < kMaxAudioSampleSize; ++i) {
+            char feature_buffer[16];
+            sprintf(feature_buffer, "%d ", g_dummy_audio_data[i]);
+            PrintToUart(feature_buffer);
+    
+            // Add a newline every 16 values for better readability
+            if ((i + 1) % 16 == 0) {
+                PrintToUart("\r\n");
+            }
+        }
+        PrintToUart("\r\n"); // Add an extra newline after printing all features
+    
+
+
     *audio_samples_size = kMaxAudioSampleSize;
     *audio_samples = g_dummy_audio_data;
     return kTfLiteOk;
