@@ -226,6 +226,19 @@ UART_HandleTypeDef DebugUartHandler;
       return;
     }
 
+    // Print the feature data
+    PrintToUart("Feature Data:\r\n");
+    for (int i = 0; i < kFeatureElementCount; ++i) {
+        char feature_buffer[16];
+        sprintf(feature_buffer, "%d ", model_input->data.uint8[i]);
+        PrintToUart(feature_buffer);
+
+        // Add a newline every 16 values for better readability
+        if ((i + 1) % 16 == 0) {
+            PrintToUart("\r\n");
+        }
+    }
+    PrintToUart("\r\n"); // Add an extra newline after printing all features
 
     previous_time = current_time;
     // If no new audio samples have been received since last time, don't bother
