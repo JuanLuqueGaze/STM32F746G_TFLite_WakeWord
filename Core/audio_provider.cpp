@@ -21,6 +21,14 @@ namespace {
   int16_t g_dummy_audio_data[kMaxAudioSampleSize];
   int32_t g_latest_audio_timestamp = 0;
   }  // namespace
+
+
+  /*int8_t expected_feature[] = {
+    126, 103, 124, 102, 124, 102, 123, 100, 118, 97, 118, 100, 118, 98,
+    121, 100, 121, 98,  117, 91,  96,  74,  54,  87, 100, 87,  109, 92,
+    91,  80,  64,  55,  83,  74,  74,  78,  114, 95, 101, 81,
+};*/
+
   
   TfLiteStatus GetAudioSamples(tflite::ErrorReporter* error_reporter,
                                int start_ms, int duration_ms,
