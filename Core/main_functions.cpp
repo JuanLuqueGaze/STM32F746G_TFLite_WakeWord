@@ -30,6 +30,7 @@ limitations under the License.
 #include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/version.h"
 #include "yes_fixed_data.h"
+#include "no_micro_features_data.h"
 
 // Model declaration
 namespace {
@@ -156,6 +157,8 @@ UART_HandleTypeDef DebugUartHandler;
       model, micro_mutable_op_resolver, tensor_arena, kTensorArenaSize,
       error_reporter);
   interpreter = &static_interpreter;
+
+
   
   // Allocate memory from the tensor_arena for the model's tensors.
   TfLiteStatus allocate_status = interpreter->AllocateTensors();
@@ -191,9 +194,11 @@ UART_HandleTypeDef DebugUartHandler;
 
   char buffer[64];
   TfLiteTensor* input = interpreter->input(0);
+
   sprintf(buffer, "Tensor input size: %d\r\n", input->bytes);
   PrintToUart(buffer);
 
+  
   // It is 1960 bytes length, so the fixed data buffer should be 1960 bytes too
 
 
@@ -264,8 +269,24 @@ UART_HandleTypeDef DebugUartHandler;
 PrintToUart("\r\n"); // Add an extra newline after printing all input data
 */
 
+  // Now test with a different input, from a recording of "No".
 
-    // Run the model on the spectrogram input and make sure it succeeds.
+  TfLiteTensor* input = interpreter->input(0);
+  
+  const int8_t* no_features_data = g_no_micro_f9643d42_nohash_4_data;
+  for (size_t i = 0; i < input->bytes; ++i) {
+    input->data.int8[i] = no_features_data[i];
+  }
+// Run the model on this "No" input.
+TfLiteStatus invoke_status = interpreter->Invoke();
+if (invoke_status != kTfLiteOk) {
+    PrintToUart("Invoke failed\n");
+}
+
+  // Get the output from the model, and make sure it's the expected size and
+  // type.
+  TfLiteTensor* output = interpreter->output(0);
+  /* // Run the model on the spectrogram input and make sure it succeeds.
     TfLiteStatus invoke_status = interpreter->Invoke();
     if (invoke_status != kTfLiteOk) {
       PrintToUart("Invoke failed\r\n");
@@ -280,24 +301,10 @@ PrintToUart("\r\n"); // Add an extra newline after printing all input data
     uint8_t score = 0;
     bool is_new_command = false;
 
-    // Copy the fixed input data into the model's input tensor
-    memcpy(model_input->data.uint8, yes_buffer, yes_buffer_len);
-
-    // Print the model input data
-PrintToUart("Model Input Data:\r\n");
-for (int i = 0; i < kFeatureElementCount; ++i) {
-    char input_buffer[16];
-    sprintf(input_buffer, "%d ", model_input->data.uint8[i]);
-    PrintToUart(input_buffer);
-
-    // Add a newline every 16 values for better readability
-    if ((i + 1) % 16 == 0) {
-        PrintToUart("\r\n");
-    }
-}
-PrintToUart("\r\n"); // Add an extra newline after printing all input data
-
-
+*/
+const char* found_command = nullptr;
+    uint8_t score = 0;
+    bool is_new_command = false;
     
     TfLiteStatus process_status = recognizer->ProcessLatestResults(
         output, current_time, &found_command, &score, &is_new_command);
