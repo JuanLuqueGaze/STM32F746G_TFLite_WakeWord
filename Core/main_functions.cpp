@@ -29,7 +29,7 @@ limitations under the License.
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 #include "tensorflow/lite/version.h"
-
+#include "yes_fixed_data.h"
 
 // Model declaration
 namespace {
@@ -168,6 +168,8 @@ UART_HandleTypeDef DebugUartHandler;
   
   // Get information about the memory area to use for the model's input.
   model_input = interpreter->input(0);
+
+
   if ((model_input->dims->size != 4) || (model_input->dims->data[0] != 1) ||
       (model_input->dims->data[1] != kFeatureSliceCount) ||
       (model_input->dims->data[2] != kFeatureSliceSize) ||
@@ -175,6 +177,10 @@ UART_HandleTypeDef DebugUartHandler;
         PrintToUart("Bad input tensor parameters in model\r\n");
         error_handler();
       }
+
+// Copy the fixed input data into the model's input tensor
+  memcpy(model_input->data.uint8, yes_buffer, kFeatureElementCount);
+
 
   PrintToUart("Inputs assigned\r\n");
   
@@ -243,10 +249,12 @@ UART_HandleTypeDef DebugUartHandler;
     previous_time = current_time;
     // If no new audio samples have been received since last time, don't bother
     // running the network model.
+    
+    /*
     if (how_many_new_slices == 0) {
       PrintToUart("No new slices\r\n");
       return;
-    }
+    }*/
   
     // Run the model on the spectrogram input and make sure it succeeds.
     TfLiteStatus invoke_status = interpreter->Invoke();
