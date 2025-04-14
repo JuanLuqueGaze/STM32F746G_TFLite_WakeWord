@@ -45,7 +45,7 @@ namespace {
   // The size of this will depend on the model you're using, and may need to be
   // determined by experimentation.
   constexpr int kTensorArenaSize = 10 * 1024;
-  alignas(16) uint8_t tensor_arena[kTensorArenaSize]; //This is done to avoid errors in the model
+  uint8_t tensor_arena[kTensorArenaSize]; //This is done to avoid errors in the model
   }  // namespace
   
 
