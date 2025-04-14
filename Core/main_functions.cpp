@@ -45,7 +45,7 @@ namespace {
   // The size of this will depend on the model you're using, and may need to be
   // determined by experimentation.
   constexpr int kTensorArenaSize = 10 * 1024;
-  uint8_t tensor_arena[kTensorArenaSize]; //This is done to avoid errors in the model
+  alignas(16) uint8_t tensor_arena[kTensorArenaSize]; //This is done to avoid errors in the model
   }  // namespace
   
 
@@ -98,6 +98,7 @@ UART_HandleTypeDef DebugUartHandler;
   {
     PrintToUart("Model assigned correctly\r\n");
   }
+
   /* Code copied from the tensorflow official repository
   // Pull in only the operation implementations we need.
   // This relies on a complete list of all the ops needed by this graph.
@@ -188,6 +189,12 @@ UART_HandleTypeDef DebugUartHandler;
   that will provide the inputs to the neural network.
   NOLINTNEXTLINE(runtime-global-variables) */
 
+  char buffer[64];
+  TfLiteTensor* input = interpreter->input(0);
+  sprintf(buffer, "Tensor input size: %d\r\n", input->bytes);
+  PrintToUart(buffer);
+
+  // It is 1960 bytes length, so the fixed data buffer should be 1960 bytes too
 
 
   //This line seems to be critical in order to find the error
@@ -232,20 +239,6 @@ UART_HandleTypeDef DebugUartHandler;
       return;
     }
 
-    // Print the feature data
-    PrintToUart("Feature Data:\r\n");
-    for (int i = 0; i < kFeatureElementCount; ++i) {
-        char feature_buffer[16];
-        sprintf(feature_buffer, "%d ", model_input->data.uint8[i]);
-        PrintToUart(feature_buffer);
-
-        // Add a newline every 16 values for better readability
-        if ((i + 1) % 16 == 0) {
-            PrintToUart("\r\n");
-        }
-    }
-    PrintToUart("\r\n"); // Add an extra newline after printing all features
-
     previous_time = current_time;
     // If no new audio samples have been received since last time, don't bother
     // running the network model.
@@ -255,7 +248,23 @@ UART_HandleTypeDef DebugUartHandler;
       PrintToUart("No new slices\r\n");
       return;
     }*/
-  
+  /*
+  // Print the model input data
+  PrintToUart("Model Input Data:\r\n");
+  for (int i = 0; i < kFeatureElementCount; ++i) {
+      char input_buffer[16];
+     sprintf(input_buffer, "%d ", model_input->data.uint8[i]);
+      PrintToUart(input_buffer);
+
+      // Add a newline every 16 values for better readability
+      if ((i + 1) % 16 == 0) {
+        PrintToUart("\r\n");
+      }
+  }
+PrintToUart("\r\n"); // Add an extra newline after printing all input data
+*/
+
+
     // Run the model on the spectrogram input and make sure it succeeds.
     TfLiteStatus invoke_status = interpreter->Invoke();
     if (invoke_status != kTfLiteOk) {
@@ -270,6 +279,26 @@ UART_HandleTypeDef DebugUartHandler;
     const char* found_command = nullptr;
     uint8_t score = 0;
     bool is_new_command = false;
+
+    // Copy the fixed input data into the model's input tensor
+    memcpy(model_input->data.uint8, yes_buffer, yes_buffer_len);
+
+    // Print the model input data
+PrintToUart("Model Input Data:\r\n");
+for (int i = 0; i < kFeatureElementCount; ++i) {
+    char input_buffer[16];
+    sprintf(input_buffer, "%d ", model_input->data.uint8[i]);
+    PrintToUart(input_buffer);
+
+    // Add a newline every 16 values for better readability
+    if ((i + 1) % 16 == 0) {
+        PrintToUart("\r\n");
+    }
+}
+PrintToUart("\r\n"); // Add an extra newline after printing all input data
+
+
+    
     TfLiteStatus process_status = recognizer->ProcessLatestResults(
         output, current_time, &found_command, &score, &is_new_command);
     if (process_status != kTfLiteOk) {
