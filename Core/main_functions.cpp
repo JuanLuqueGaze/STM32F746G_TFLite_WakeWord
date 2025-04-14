@@ -31,7 +31,7 @@ limitations under the License.
 #include "tensorflow/lite/version.h"
 #include "yes_fixed_data.h"
 #include "no_micro_features_data.h"
-
+#include "yes_micro_features_data.h"
 // Model declaration
 namespace {
   tflite::ErrorReporter* error_reporter = nullptr;
