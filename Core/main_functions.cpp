@@ -269,8 +269,25 @@ UART_HandleTypeDef DebugUartHandler;
     // Now test with a different input, from a recording of "No".
 
     TfLiteTensor* input = interpreter->input(0);
-  
-    const uint8_t* no_features_data = g_yes_micro_f2e59fea_nohash_1_data;
+    int count;
+    const uint8_t* no_features_data;
+    if (count%2==0){
+      no_features_data = g_no_micro_f9643d42_nohash_4_data;
+      count = 1;
+      sprintf(buffer, "Count is: %d. Using no.\r\n", count);
+      PrintToUart(buffer);
+    }
+    else
+    {
+      no_features_data = g_yes_micro_f2e59fea_nohash_1_data;
+      count = 2;
+      sprintf(buffer, "Count is: %d. Using yes.\r\n", count);
+      PrintToUart(buffer);
+    }
+
+
+
+
     for (size_t i = 0; i < input->bytes; ++i) {
       input->data.int8[i] = no_features_data[i];
     }
