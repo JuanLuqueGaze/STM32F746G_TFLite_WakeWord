@@ -270,7 +270,7 @@ UART_HandleTypeDef DebugUartHandler;
 
     TfLiteTensor* input = interpreter->input(0);
   
-    const int8_t* no_features_data = g_no_micro_f9643d42_nohash_4_data;
+    const uint8_t* no_features_data = g_yes_micro_f2e59fea_nohash_1_data;
     for (size_t i = 0; i < input->bytes; ++i) {
       input->data.int8[i] = no_features_data[i];
     }
