@@ -181,11 +181,6 @@ UART_HandleTypeDef DebugUartHandler;
         PrintToUart("Bad input tensor parameters in model\r\n");
         error_handler();
       }
-
-// Copy the fixed input data into the model's input tensor
-  memcpy(model_input->data.uint8, yes_buffer, kFeatureElementCount);
-
-
   PrintToUart("Inputs assigned\r\n");
   
   /* Prepare to access the audio spectrograms from a microphone or other source
@@ -247,62 +242,49 @@ UART_HandleTypeDef DebugUartHandler;
     previous_time = current_time;
     // If no new audio samples have been received since last time, don't bother
     // running the network model.
-    
+
+    //Until I use the peripheral, this lines will be commented, because it will provide the same input data always
     /*
     if (how_many_new_slices == 0) {
       PrintToUart("No new slices\r\n");
       return;
     }*/
-  /*
-  // Print the model input data
-  PrintToUart("Model Input Data:\r\n");
-  for (int i = 0; i < kFeatureElementCount; ++i) {
+
+    /*
+    // Print the model input data
+    PrintToUart("Model Input Data:\r\n");
+    for (int i = 0; i < kFeatureElementCount; ++i) {
       char input_buffer[16];
-     sprintf(input_buffer, "%d ", model_input->data.uint8[i]);
+      sprintf(input_buffer, "%d ", model_input->data.uint8[i]);
       PrintToUart(input_buffer);
 
       // Add a newline every 16 values for better readability
       if ((i + 1) % 16 == 0) {
         PrintToUart("\r\n");
       }
-  }
-PrintToUart("\r\n"); // Add an extra newline after printing all input data
-*/
+    }
+    PrintToUart("\r\n"); // Add an extra newline after printing all input data
+    */
 
-  // Now test with a different input, from a recording of "No".
+    // Now test with a different input, from a recording of "No".
 
-  TfLiteTensor* input = interpreter->input(0);
+    TfLiteTensor* input = interpreter->input(0);
   
-  const int8_t* no_features_data = g_no_micro_f9643d42_nohash_4_data;
-  for (size_t i = 0; i < input->bytes; ++i) {
-    input->data.int8[i] = no_features_data[i];
-  }
-// Run the model on this "No" input.
-TfLiteStatus invoke_status = interpreter->Invoke();
-if (invoke_status != kTfLiteOk) {
-    PrintToUart("Invoke failed\n");
-}
-
-  // Get the output from the model, and make sure it's the expected size and
-  // type.
-  TfLiteTensor* output = interpreter->output(0);
-  /* // Run the model on the spectrogram input and make sure it succeeds.
+    const int8_t* no_features_data = g_no_micro_f9643d42_nohash_4_data;
+    for (size_t i = 0; i < input->bytes; ++i) {
+      input->data.int8[i] = no_features_data[i];
+    }
+    // Run the model on this "No" input.
     TfLiteStatus invoke_status = interpreter->Invoke();
     if (invoke_status != kTfLiteOk) {
-      PrintToUart("Invoke failed\r\n");
-      error_handler();
-      return;
+          PrintToUart("Invoke failed\n");
+          error_handler();
     }
-  
-    // Obtain a pointer to the output tensor
-    TfLiteTensor* output = interpreter->output(0);
-    // Determine whether a command was recognized based on the output of inference
-    const char* found_command = nullptr;
-    uint8_t score = 0;
-    bool is_new_command = false;
 
-*/
-const char* found_command = nullptr;
+    // Get the output from the model, and make sure it's the expected size and type.
+    TfLiteTensor* output = interpreter->output(0);
+
+    const char* found_command = nullptr;
     uint8_t score = 0;
     bool is_new_command = false;
     
@@ -317,10 +299,10 @@ const char* found_command = nullptr;
 
 
     // Print the recognized command, score, and whether it's a new command
-char result_buffer[128];
-sprintf(result_buffer, "Command: %s, Score: %u, Is New: %s\r\n",
+    char result_buffer[128];
+    sprintf(result_buffer, "Command: %s, Score: %u, Is New: %s\r\n",
         found_command, score, is_new_command ? "true" : "false");
-PrintToUart(result_buffer);
+    PrintToUart(result_buffer);
 
 
     // Do something based on the recognized command. The default implementation

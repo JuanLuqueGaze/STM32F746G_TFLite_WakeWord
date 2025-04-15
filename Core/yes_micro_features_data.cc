@@ -35,7 +35,7 @@ limitations under the License.
  * * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * */
 
-#include "third_party/xtensa/examples/micro_speech_lstm/yes_micro_features_data.h"
+#include "yes_micro_features_data.h"
 
 // Golden test values for the expected spectrogram from a "yes" sample file
 // speech_commands_test_set_v0.02/yes/f2e59fea_nohash_1.wav.
