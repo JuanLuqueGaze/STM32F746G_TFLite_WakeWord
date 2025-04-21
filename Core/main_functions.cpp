@@ -291,6 +291,21 @@ UART_HandleTypeDef DebugUartHandler;
     for (size_t i = 0; i < input->bytes; ++i) {
       input->data.int8[i] = no_features_data[i];
     }
+
+    // Print the input data
+    PrintToUart("Input Data:\r\n");
+    for (size_t i = 0; i < input->bytes; ++i) {
+      char input_buffer[16];
+      sprintf(input_buffer, "%d ", input->data.int8[i]); // Print as integers
+      PrintToUart(input_buffer);
+
+      // Add a newline every 16 values for better readability
+      if ((i + 1) % 16 == 0) {
+         PrintToUart("\r\n");     
+      }
+    }
+    PrintToUart("\r\n"); // Add an extra newline after printing all input data
+
     // Run the model on this "No" input.
     TfLiteStatus invoke_status = interpreter->Invoke();
     if (invoke_status != kTfLiteOk) {
