@@ -25,7 +25,6 @@ limitations under the License.
 extern "C" {
 #endif
 
-// Details at https://research.google/pubs/pub45911.pdf
 struct PcanGainControlState {
   int enable_pcan;
   uint32_t* noise_estimate;

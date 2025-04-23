@@ -1,18 +1,10 @@
-/*
- *  Copyright (c) 2003-2010, Mark Borgerding. All rights reserved.
- *  This file is part of KISS FFT - https://github.com/mborgerding/kissfft
- *
- *  SPDX-License-Identifier: BSD-3-Clause
- *  See COPYING file for more information.
- */
-
 #ifndef KISS_FFT_H
 #define KISS_FFT_H
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <string.h>
+//#include <string.h> /* Patched by helper_functions.inc for Arduino compatibility */
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,13 +29,19 @@ extern "C" {
 #define KISS_FFT_MALLOC(nbytes) _mm_malloc(nbytes,16)
 #define KISS_FFT_FREE _mm_free
 #else	
-#define KISS_FFT_MALLOC malloc
-#define KISS_FFT_FREE free
+#define KISS_FFT_MALLOC(X) (void*)(0) /* Patched. */
+#define KISS_FFT_FREE(X) /* Patched. */
 #endif	
 
 
+// Patched automatically by download_dependencies.sh so default is 16 bit.
+#ifndef FIXED_POINT
+#define FIXED_POINT (16)
+#endif
+// End patch.
+
 #ifdef FIXED_POINT
-#include <stdint.h>
+#include <sys/types.h>	
 # if (FIXED_POINT == 32)
 #  define kiss_fft_scalar int32_t
 # else	
@@ -107,7 +105,7 @@ void kiss_fft_stride(kiss_fft_cfg cfg,const kiss_fft_cpx *fin,kiss_fft_cpx *fout
 
 /* If kiss_fft_alloc allocated a buffer, it is one contiguous 
    buffer and can be simply free()d when no longer needed*/
-#define kiss_fft_free KISS_FFT_FREE
+#define kiss_fft_free free
 
 /*
  Cleans up some memory that gets managed internally. Not necessary to call, but it might clean up 

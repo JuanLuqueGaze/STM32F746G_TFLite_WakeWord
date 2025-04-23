@@ -15,6 +15,31 @@ limitations under the License.
 #ifndef TENSORFLOW_LITE_CORE_API_ERROR_REPORTER_H_
 #define TENSORFLOW_LITE_CORE_API_ERROR_REPORTER_H_
 
-#include "tensorflow/compiler/mlir/lite/core/api/error_reporter.h"  // IWYU pragma: export
+#include <cstdarg>
+
+namespace tflite {
+
+/// A functor that reports error to supporting system. Invoked similar to
+/// printf.
+///
+/// Usage:
+///  ErrorReporter foo;
+///  foo.Report("test %d", 5);
+/// or
+///  va_list args;
+///  foo.Report("test %d", args); // where args is va_list
+///
+/// Subclass ErrorReporter to provide another reporting destination.
+/// For example, if you have a GUI program, you might redirect to a buffer
+/// that drives a GUI error log box.
+class ErrorReporter {
+ public:
+  virtual ~ErrorReporter() {}
+  virtual int Report(const char* format, va_list args) = 0;
+  int Report(const char* format, ...);
+  int ReportError(void*, const char* format, ...);
+};
+
+}  // namespace tflite
 
 #endif  // TENSORFLOW_LITE_CORE_API_ERROR_REPORTER_H_
