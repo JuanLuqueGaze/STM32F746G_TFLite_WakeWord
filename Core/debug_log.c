@@ -7,7 +7,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "tensorflow/lite/micro/debug_log.h"
+#include "tensorflow/lite/experimental/micro/debug_log.h"
 #include "stm32f7xx_hal.h"
 #include "stm32f7xx_hal_uart.h"
 #include <stdio.h>
