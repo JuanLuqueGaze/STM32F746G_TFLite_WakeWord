@@ -56,7 +56,7 @@
 									<listOptionValue builtIn="false" value="../Drivers/BSP/Components"/>
 									<listOptionValue builtIn="false" value="../Drivers/BSP/STM32746G-Discovery"/>
 									<listOptionValue builtIn="false" value="../Utilities/Fonts"/>
-									<listOptionValue builtIn="false" value="../tensorflow//third_party/flatbuffers/include"/>
+									<listOptionValue builtIn="false" value="../tensorflow/third_party/flatbuffers/include"/>
 									<listOptionValue builtIn="false" value="../tensorflow/third_party/gemmlowp"/>
 									<listOptionValue builtIn="false" value="../tensorflow/third_party/fixedpoint"/>
 									<listOptionValue builtIn="false" value="../third_party/ruy"/>

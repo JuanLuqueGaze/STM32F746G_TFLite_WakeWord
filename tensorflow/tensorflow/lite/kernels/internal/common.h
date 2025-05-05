@@ -30,7 +30,7 @@ limitations under the License.
 #include <cmath>
 #include <functional>
 
-#include "fixedpoint.h"
+#include "fixedpoint/fixedpoint.h"
 #include "tensorflow/lite/core/macros.h"
 #include "tensorflow/lite/kernels/internal/cppmath.h"
 #include "tensorflow/lite/kernels/internal/optimized/neon_check.h"
