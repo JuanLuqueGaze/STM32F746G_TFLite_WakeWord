@@ -112,14 +112,14 @@ UART_HandleTypeDef DebugUartHandler;
   */
 
 
-  static tflite::MicroMutableOpResolver micro_mutable_op_resolver;
+  static tflite::MicroMutableOpResolver<10> micro_mutable_op_resolver;
   TfLiteStatus BuiltinOperator_StatusDebug_1 = micro_mutable_op_resolver.AddBuiltin(
       tflite::BuiltinOperator_DEPTHWISE_CONV_2D,
       tflite::ops::micro::Register_DEPTHWISE_CONV_2D());
   TfLiteStatus BuiltinOperator_StatusDebug_2 = micro_mutable_op_resolver.AddBuiltin(
       tflite::BuiltinOperator_FULLY_CONNECTED,
       tflite::ops::micro::Register_FULLY_CONNECTED());
-  TfLiteStatus BuiltinOperator_StatusDebug_3 =micro_mutable_op_resolver.AddBuiltin(tflite::BuiltinOperator_SOFTMAX,
+  TfLiteStatus BuiltinOperator_StatusDebug_3 = micro_mutable_op_resolver.AddBuiltin(tflite::BuiltinOperator_SOFTMAX,
                                        tflite::ops::micro::Register_SOFTMAX());
 
   //Checks if the layers are correctly assigned to the ops resolver. If not, it will enter the error handler.
