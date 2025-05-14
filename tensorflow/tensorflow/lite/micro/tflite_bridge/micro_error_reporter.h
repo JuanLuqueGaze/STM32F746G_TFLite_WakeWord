@@ -19,7 +19,7 @@ limitations under the License.
 
 #include "tensorflow/lite/core/api/error_reporter.h"
 #include "tensorflow/lite/micro/compatibility.h"
-
+#include "tensorflow/lite/micro/debug_log.h"
 namespace tflite {
 // Get a pointer to a singleton global error reporter.
 ErrorReporter* GetMicroErrorReporter();

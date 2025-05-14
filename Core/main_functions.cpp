@@ -48,7 +48,7 @@ namespace {
   // The size of this will depend on the model you're using, and may need to be
   // determined by experimentation.
   constexpr int kTensorArenaSize = 10 * 1024;
-  alignas(16) uint8_t tensor_arena[kTensorArenaSize]; //This is done to avoid errors in the model
+  alignas(16) static uint8_t tensor_arena[kTensorArenaSize]; //This is done to avoid errors in the model
   }  // namespace
   
 
@@ -63,7 +63,6 @@ UART_HandleTypeDef DebugUartHandler;
 
   // This is the setup function, executed once at startup.
   void setup() {
-    
 	BSP_LED_Init(LED_GREEN);  //Initilize the LED, which can be used for debugging
 
   uart1_init(); //Initialize the uart
@@ -92,6 +91,7 @@ UART_HandleTypeDef DebugUartHandler;
   /* Map the model into a usable data structure. This doesn't involve any copying or parsing, 
   it's a very lightweight operation. It's just assign the model to a tflite struct model */
   model = tflite::GetModel(g_tiny_conv_micro_features_model_data);
+
   if (model->version() != TFLITE_SCHEMA_VERSION) {
     PrintToUart("Version is not correct\r\n");
     error_handler();
@@ -113,46 +113,16 @@ UART_HandleTypeDef DebugUartHandler;
   // NOLINTNEXTLINE(runtime-global-variables)
   */
 
-  static tflite::MicroMutableOpResolver<10> micro_mutable_op_resolver;
-  TfLiteStatus BuiltinOperator_StatusDebug_1 = micro_mutable_op_resolver.AddDepthwiseConv2D();
-  TfLiteStatus BuiltinOperator_StatusDebug_2 = micro_mutable_op_resolver.AddFullyConnected();
-  TfLiteStatus BuiltinOperator_StatusDebug_3 = micro_mutable_op_resolver.AddSoftmax();
-  //Checks if the layers are correctly assigned to the ops resolver. If not, it will enter the error handler.
-  if (BuiltinOperator_StatusDebug_1 != kTfLiteOk) {
-    PrintToUart("First layer wrongly assigned\r\n");
-    error_handler();  
-  }
-  else
-  {
-    PrintToUart("First layer correctly assigned\r\n");
-  } 
-  
-  if (BuiltinOperator_StatusDebug_1 != kTfLiteOk) {
-    PrintToUart("Second layer wrongly assigned\r\n");
-    error_handler();  
-  }
-  else
-  {
-    PrintToUart("Second layer correctly assigned\r\n");
-  }      
-
-  if (BuiltinOperator_StatusDebug_1 != kTfLiteOk) {
-    PrintToUart("Third layer wrongly assigned\r\n");
-    error_handler();  
-  }
-  else
-  {
-    PrintToUart("Third layer correctly assigned\r\n");
-  }      
-
-  PrintToUart("Ops resolvers working\r\n"); //Debug for ops resolver
+  static tflite::MicroMutableOpResolver<3> micro_mutable_op_resolver;
+  micro_mutable_op_resolver.AddDepthwiseConv2D(tflite::Register_DEPTHWISE_CONV_2D_INT8());
+  micro_mutable_op_resolver.AddFullyConnected(tflite::Register_FULLY_CONNECTED_INT8());
+  micro_mutable_op_resolver.AddSoftmax(tflite::Register_SOFTMAX_INT8());  
   
   // Build an interpreter to run the model with.
-  static tflite::MicroInterpreter static_interpreter(
-      model, micro_mutable_op_resolver, tensor_arena, kTensorArenaSize,
-      error_reporter);
-  interpreter = &static_interpreter;
 
+  static tflite::MicroInterpreter static_interpreter(
+        model, micro_mutable_op_resolver, tensor_arena, kTensorArenaSize);
+    interpreter = &static_interpreter;
 
   
   // Allocate memory from the tensor_arena for the model's tensors.

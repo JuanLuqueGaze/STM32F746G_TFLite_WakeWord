@@ -14,7 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 #include "command_responder.h"
-
+#include "tensorflow/lite/core/api/error_reporter.h"
 // The default implementation writes out the name of the recognized command
 // to the error console. Real applications will want to take some custom
 // action instead, and should implement their own versions of this function.
