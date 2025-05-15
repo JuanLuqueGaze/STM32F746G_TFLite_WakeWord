@@ -14,7 +14,10 @@ limitations under the License.
 ==============================================================================*/
 
 #include "command_responder.h"
-#include "tensorflow/lite/core/api/error_reporter.h"
+#include "micro_error_reporter.h"
+#include "tensorflow/compiler/mlir/lite/core/api/error_reporter.h"
+  static tflite::MicroErrorReporter micro_error_reporter;
+  tflite::ErrorReporter* error_reporter = &micro_error_reporter;
 // The default implementation writes out the name of the recognized command
 // to the error console. Real applications will want to take some custom
 // action instead, and should implement their own versions of this function.
