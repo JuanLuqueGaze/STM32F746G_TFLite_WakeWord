@@ -30,7 +30,7 @@ limitations under the License.
 // For example, see the Cortex M bare metal version in the
 // tensorflow/lite/micro/bluepill/debug_log.cc file.
 
-#include "tensorflow/lite/micro/debug_log.h"
+#include "debug_log.h"
 
 #ifndef TF_LITE_STRIP_ERROR_STRINGS
 #include <cstdio>
