@@ -25,7 +25,7 @@ limitations under the License.
 #include "recognize_commands.h"
 #include "tensorflow/lite/micro/kernels/micro_ops.h"
 #include "micro_error_reporter.h"
-#include "tensorflow/lite/micro/micro_interpreter.h"
+#include "../tensorflow/tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/schema/schema_generated.h"
 #include "version.h"

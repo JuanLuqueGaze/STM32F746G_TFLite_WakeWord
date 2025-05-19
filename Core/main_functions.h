@@ -17,6 +17,7 @@ limitations under the License.
 #define TENSORFLOW_LITE_EXPERIMENTAL_MICRO_EXAMPLES_MICRO_SPEECH_MAIN_FUNCTIONS_H_
 #include "stm32f7xx_hal.h"  
 #include "stm32f7xx_hal_sai.h" 
+#include "micro_interpreter.h"
 static void uart1_init(void);
 static void cpu_cache_enable(void);
 static void error_handler(void);
