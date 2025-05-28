@@ -19,7 +19,7 @@ limitations under the License.
 #define TENSORFLOW_LITE_EXPERIMENTAL_MICRO_EXAMPLES_MICRO_SPEECH_COMMAND_RESPONDER_H_
 
 #include "tensorflow/lite/c/common.h"
-#include "tensorflow/lite/micro/tflite_bridge/micro_error_reporter.h"
+#include "../Core/micro_error_reporter.h"
 
 // Called every time the results of an audio recognition run are available. The
 // human-readable name of any recognized command is in the `found_command`
