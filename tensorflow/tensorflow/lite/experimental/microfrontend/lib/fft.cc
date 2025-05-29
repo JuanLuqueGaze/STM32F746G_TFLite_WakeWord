@@ -16,7 +16,9 @@ limitations under the License.
 
 #include <string.h>
 
-#include "tensorflow/lite/experimental/microfrontend/lib/kiss_fft_int16.h"
+
+#define FIXED_POINT 16
+#include "../tensorflow/third_party/kissfft/tools/kiss_fftr.h"
 
 void FftCompute(struct FftState* state, const int16_t* input,
                 int input_scale_shift) {
@@ -36,10 +38,11 @@ void FftCompute(struct FftState* state, const int16_t* input,
   }
 
   // Apply the FFT.
-  kissfft_fixed16::kiss_fftr(
-      reinterpret_cast<kissfft_fixed16::kiss_fftr_cfg>(state->scratch),
+  // Apply the FFT.
+  kiss_fftr(
+      reinterpret_cast<const kiss_fftr_cfg>(state->scratch),
       state->input,
-      reinterpret_cast<kissfft_fixed16::kiss_fft_cpx*>(state->output));
+      reinterpret_cast<kiss_fft_cpx*>(state->output));
 }
 
 void FftInit(struct FftState* state) {
