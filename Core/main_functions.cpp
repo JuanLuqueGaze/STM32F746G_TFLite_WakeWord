@@ -113,19 +113,50 @@ UART_HandleTypeDef DebugUartHandler;
   */
 
   static tflite::MicroMutableOpResolver<3> micro_mutable_op_resolver;
-  micro_mutable_op_resolver.AddDepthwiseConv2D(tflite::Register_DEPTHWISE_CONV_2D_INT8());
-  micro_mutable_op_resolver.AddFullyConnected(tflite::Register_FULLY_CONNECTED_INT8());
-  micro_mutable_op_resolver.AddSoftmax(tflite::Register_SOFTMAX_INT8());  
+  TfLiteStatus BuiltinOperator_StatusDebug_1 = micro_mutable_op_resolver.AddDepthwiseConv2D(tflite::Register_DEPTHWISE_CONV_2D_INT8());
+  TfLiteStatus BuiltinOperator_StatusDebug_2 = micro_mutable_op_resolver.AddFullyConnected(tflite::Register_FULLY_CONNECTED_INT8());
+  TfLiteStatus BuiltinOperator_StatusDebug_3 = micro_mutable_op_resolver.AddSoftmax(tflite::Register_SOFTMAX_INT8());
+
+  if (BuiltinOperator_StatusDebug_1 != kTfLiteOk) {
+     PrintToUart("First layer wrongly assigned\r\n");
+     error_handler();
+   }
+   else
+   {
+     PrintToUart("First layer correctly assigned\r\n");
+   }
+
+   if (BuiltinOperator_StatusDebug_2 != kTfLiteOk) {
+     PrintToUart("Second layer wrongly assigned\r\n");
+     error_handler();
+   }
+   else
+   {
+     PrintToUart("Second layer correctly assigned\r\n");
+   }
+
+   if (BuiltinOperator_StatusDebug_3 != kTfLiteOk) {
+     PrintToUart("Third layer wrongly assigned\r\n");
+     error_handler();
+   }
+   else
+   {
+     PrintToUart("Third layer correctly assigned\r\n");
+   }
+
+   PrintToUart("Ops resolvers working\r\n"); //Debug for ops resolver
   
   // Build an interpreter to run the model with.
-
+   PrintToUart("Creating an interpreter\r\n");
   static tflite::MicroInterpreter static_interpreter(
         model, micro_mutable_op_resolver, tensor_arena, kTensorArenaSize);
     interpreter = &static_interpreter;
-
+    PrintToUart("Interpreter created\r\n");
   
   // Allocate memory from the tensor_arena for the model's tensors.
+    PrintToUart("Allocating tensors\r\n");
   TfLiteStatus allocate_status = interpreter->AllocateTensors();
+  PrintToUart("Tensors allocated\r\n");
   if (allocate_status != kTfLiteOk) {
     PrintToUart("AllocateTensors() failed\r\n");
     error_handler();
