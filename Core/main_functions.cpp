@@ -46,7 +46,7 @@ namespace {
   // Create an area of memory to use for input, output, and intermediate arrays.
   // The size of this will depend on the model you're using, and may need to be
   // determined by experimentation.
-  constexpr int kTensorArenaSize = 10 * 1024;
+  constexpr int kTensorArenaSize = 30 * 1024;
   alignas(16) static uint8_t tensor_arena[kTensorArenaSize]; //This is done to avoid errors in the model
   }  // namespace
   
@@ -154,15 +154,15 @@ UART_HandleTypeDef DebugUartHandler;
     PrintToUart("Interpreter created\r\n");
   
   // Allocate memory from the tensor_arena for the model's tensors.
-    PrintToUart("Allocating tensors\r\n");
+   PrintToUart("Allocating tensors\r\n");
   TfLiteStatus allocate_status = interpreter->AllocateTensors();
-  PrintToUart("Tensors allocated\r\n");
+   PrintToUart("Tensors allocated\r\n");
   if (allocate_status != kTfLiteOk) {
     PrintToUart("AllocateTensors() failed\r\n");
     error_handler();
   }
   else{
-    PrintToUart("AllocateTensors() succeded\r\n");
+    PrintToUart("AllocateTensors() succeeded\r\n");
   }
   
   // Get information about the memory area to use for the model's input.
