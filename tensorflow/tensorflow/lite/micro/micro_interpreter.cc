@@ -18,6 +18,7 @@ limitations under the License.
 #include <cstddef>
 #include <cstdint>
 
+#include "uart_utils.h"
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/c/c_api_types.h"
 #include "tensorflow/lite/c/common.h"
@@ -198,8 +199,9 @@ TfLiteStatus MicroInterpreter::PrepareNodeAndRegistrationDataFromFlatbuffer() {
 }
 
 TfLiteStatus MicroInterpreter::AllocateTensors() {
+  PrintToUart("Starting allocation process\r\n");
   SubgraphAllocations* allocations = allocator_.StartModelAllocation(model_);
-
+  PrintToUart("Allocation started correctly\r\n");
   if (allocations == nullptr) {
     MicroPrintf("Failed starting model allocation.\n");
     initialization_status_ = kTfLiteError;
@@ -207,7 +209,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   }
 
   graph_.SetSubgraphAllocations(allocations);
-
+  PrintToUart("Subgraph allocations are correctly assigned\r\n");
   TF_LITE_ENSURE_STATUS(PrepareNodeAndRegistrationDataFromFlatbuffer());
 
   micro_context_.SetInterpreterState(
@@ -228,6 +230,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
 
   micro_context_.SetScratchBufferHandles(scratch_buffer_handles_);
 
+  PrintToUart("All setup is OK\r\n");
   // TODO(b/162311891): Drop these allocations when the interpreter supports
   // handling buffers from TfLiteEvalTensor.
   input_tensors_ =
@@ -240,7 +243,6 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
         sizeof(TfLiteTensor*) * inputs_size());
     return kTfLiteError;
   }
-
   for (size_t i = 0; i < inputs_size(); ++i) {
     input_tensors_[i] = allocator_.AllocatePersistentTfLiteTensor(
         model_, graph_.GetAllocations(), inputs().Get(i), 0);
@@ -250,6 +252,7 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
     }
   }
 
+  PrintToUart("Input Tensors are OK\r\n");
   // TODO(b/162311891): Drop these allocations when the interpreter supports
   // handling buffers from TfLiteEvalTensor.
   output_tensors_ =
@@ -271,7 +274,8 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
       return kTfLiteError;
     }
   }
-
+  
+  PrintToUart("Output Tensors are OK\r\n");
   TF_LITE_ENSURE_STATUS(Reset());
 
   tensors_allocated_ = true;
