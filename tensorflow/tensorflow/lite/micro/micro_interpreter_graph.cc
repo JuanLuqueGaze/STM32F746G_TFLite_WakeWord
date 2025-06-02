@@ -14,7 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 #include "tensorflow/lite/micro/micro_interpreter_graph.h"
-
+#include "uart_utils.h"
 #include "flatbuffers/flatbuffers.h"  // from @flatbuffers
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/compatibility.h"
@@ -99,6 +99,8 @@ TfLiteStatus MicroInterpreterGraph::InitSubgraphs() {
 }
 
 TfLiteStatus MicroInterpreterGraph::PrepareSubgraphs() {
+  
+  PrintToUart("Gets into the error function\r\n");
   int previous_subgraph_idx = current_subgraph_index_;
   uint32_t previous_operator_idx = current_operator_index_;
   for (size_t subgraph_idx = 0; subgraph_idx < subgraphs_->size();

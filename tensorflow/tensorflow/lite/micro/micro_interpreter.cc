@@ -212,22 +212,30 @@ TfLiteStatus MicroInterpreter::AllocateTensors() {
   PrintToUart("Subgraph allocations are correctly assigned\r\n");
   TF_LITE_ENSURE_STATUS(PrepareNodeAndRegistrationDataFromFlatbuffer());
 
+  PrintToUart("Nodes Prepared\r\n");
   micro_context_.SetInterpreterState(
       MicroInterpreterContext::InterpreterState::kInit);
   TF_LITE_ENSURE_STATUS(graph_.InitSubgraphs());
 
+  PrintToUart("Interpreter State Init\r\n");
   micro_context_.SetInterpreterState(
       MicroInterpreterContext::InterpreterState::kPrepare);
+  
+  PrintToUart("Interpreter State Prepared\r\n");
 
+  // Until here, all is correctly done, it breaks in the following line
   TF_LITE_ENSURE_STATUS(graph_.PrepareSubgraphs());
-
+  
+  PrintToUart("Subgraphs Prepared\r\n");
   micro_context_.SetInterpreterState(
       MicroInterpreterContext::InterpreterState::kMemoryPlanning);
-
+  
+  PrintToUart("Memory Planning\r\n");
   TF_LITE_ENSURE_OK(&context_, allocator_.FinishModelAllocation(
                                    model_, graph_.GetAllocations(),
                                    &scratch_buffer_handles_));
-
+  
+  PrintToUart("Finish Allocations\r\n");
   micro_context_.SetScratchBufferHandles(scratch_buffer_handles_);
 
   PrintToUart("All setup is OK\r\n");
