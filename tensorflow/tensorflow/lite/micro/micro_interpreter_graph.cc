@@ -103,12 +103,21 @@ TfLiteStatus MicroInterpreterGraph::PrepareSubgraphs() {
   PrintToUart("Gets into the error function\r\n");
   int previous_subgraph_idx = current_subgraph_index_;
   uint32_t previous_operator_idx = current_operator_index_;
+  PrintToUart("Assignments are correct\r\n");
+
+  //The error is in this loop
+  // It goes from the subgraph_idx to subgraphs_ -> size
   for (size_t subgraph_idx = 0; subgraph_idx < subgraphs_->size();
        subgraph_idx++) {
+       //It enters in the loop, makes one iteration and stops
     current_subgraph_index_ = subgraph_idx;
     uint32_t operators_size = NumSubgraphOperators(model_, subgraph_idx);
     for (current_operator_index_ = 0; current_operator_index_ < operators_size;
          ++current_operator_index_) {
+          PrintToUart("Enters in the second loop\r\n");
+          char buffer2[64];
+          sprintf(buffer2, "Number of iterations: %d\r\n", operators_size);
+          PrintToUart(buffer2);
       TfLiteNode* node = &(subgraph_allocations_[subgraph_idx]
                                .node_and_registrations[current_operator_index_]
                                .node);
