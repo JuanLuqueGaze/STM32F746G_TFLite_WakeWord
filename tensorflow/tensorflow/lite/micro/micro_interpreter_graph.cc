@@ -112,30 +112,45 @@ TfLiteStatus MicroInterpreterGraph::PrepareSubgraphs() {
        //It enters in the loop, makes one iteration and stops
     current_subgraph_index_ = subgraph_idx;
     uint32_t operators_size = NumSubgraphOperators(model_, subgraph_idx);
+    
+    char buffer2[64];
+    sprintf(buffer2, "Number of iterations: %d\r\n", operators_size);     
+    PrintToUart(buffer2);
+
     for (current_operator_index_ = 0; current_operator_index_ < operators_size;
          ++current_operator_index_) {
-          PrintToUart("Enters in the second loop\r\n");
-          char buffer2[64];
-          sprintf(buffer2, "Number of iterations: %d\r\n", operators_size);
-          PrintToUart(buffer2);
+          //Makes one iteration correctly and crashes in the second one
+      sprintf(buffer2,"Enters in the second loop, iteration number %d\r\n", current_operator_index_+1);
+      PrintToUart(buffer2);
       TfLiteNode* node = &(subgraph_allocations_[subgraph_idx]
                                .node_and_registrations[current_operator_index_]
                                .node);
+      PrintToUart("Node correctly declared\r\n");
       const TFLMRegistration* registration =
           subgraph_allocations_[subgraph_idx]
               .node_and_registrations[current_operator_index_]
               .registration;
+      PrintToUart("Registration started\r\n");
       if (registration->prepare != nullptr) {
+        PrintToUart("Registration preparation is not null\r\n");
+        //HERE IS THE ISSUE, IT DOESN'T ADVANCE FROM THIS POINT IN THE SECOND LOOP
         TfLiteStatus prepare_status = registration->prepare(context_, node);
+        if (prepare_status == kTfLiteOk){
+          PrintToUart("Preparation done correctly\r\n");
+        }
+        PrintToUart("Registration prepared\r\n");
         if (prepare_status != kTfLiteOk) {
+          PrintToUart("Registration failed\r\n");
           MicroPrintf("Node %s (number %df) failed to prepare with status %d",
                       OpNameFromRegistration(registration),
                       current_operator_index_, prepare_status);
           return kTfLiteError;
         }
+      PrintToUart("Preparing compression\r\n");
 #ifdef USE_TFLM_COMPRESSION
         GetMicroContext(context_)->ResetDecompressionMemoryAllocations();
 #endif  // USE_TFLM_COMPRESSION
+      PrintToUart("Compression done\r\n");
       }
       allocator_->FinishPrepareNodeAllocations(
           /*node_id=*/current_operator_index_);
