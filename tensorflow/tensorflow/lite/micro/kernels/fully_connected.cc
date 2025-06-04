@@ -14,7 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 #include "tensorflow/lite/micro/kernels/fully_connected.h"
-
+#include "uart_utils.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/portable_tensor_utils.h"
@@ -34,6 +34,7 @@ void* FullyConnectedInit(TfLiteContext* context, const char* buffer,
 }
 
 TfLiteStatus FullyConnectedPrepare(TfLiteContext* context, TfLiteNode* node) {
+  PrintToUart("Enters in the fully connected prepare\r\n");
   MicroContext* micro_context = GetMicroContext(context);
 
   TFLITE_DCHECK(node->user_data != nullptr);

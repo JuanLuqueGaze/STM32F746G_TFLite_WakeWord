@@ -46,7 +46,7 @@ namespace {
   // Create an area of memory to use for input, output, and intermediate arrays.
   // The size of this will depend on the model you're using, and may need to be
   // determined by experimentation.
-  constexpr int kTensorArenaSize = 30 * 1024;
+  constexpr int kTensorArenaSize = 120 * 1024;
   alignas(16) static uint8_t tensor_arena[kTensorArenaSize]; //This is done to avoid errors in the model
   }  // namespace
   

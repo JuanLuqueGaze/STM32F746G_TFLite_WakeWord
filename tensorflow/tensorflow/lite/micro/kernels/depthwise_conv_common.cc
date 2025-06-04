@@ -12,7 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-
+#include "uart_utils.h"
 #include "tensorflow/lite/c/builtin_op_data.h"
 #include "tensorflow/lite/c/common.h"
 #include "tensorflow/lite/kernels/internal/common.h"
@@ -137,6 +137,7 @@ TfLiteStatus CalculateOpDataDepthwiseConv(
 }
 
 TfLiteStatus DepthwiseConvPrepare(TfLiteContext* context, TfLiteNode* node) {
+  PrintToUart("This is the prepare function\r\n");
   TFLITE_DCHECK(node->user_data != nullptr);
   TFLITE_DCHECK(node->builtin_data != nullptr);
 
